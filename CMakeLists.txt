@@ -14,29 +14,39 @@
 
 cmake_minimum_required(VERSION 3.0)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
-project(OpenCL-SDK)
+project(OpenCL-SDK
+  VERSION 1.0
+  LANGUAGES
+    C CXX
+)
+
+include(CMakeDependentOption)
+option(OPENCL_SDK_BUILD_SAMPLES "Build sample code" ON)
+cmake_dependent_option(OPENCL_SDK_TEST_SAMPLES "Add CTest to samples (where applicable)" ON OPENCL_SDK_BUILD_SAMPLES OFF)
+
+include(CTest)
 
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, default to Release")
     set(CMAKE_BUILD_TYPE "Release" CACHE PATH "Build Type" FORCE)
 endif()
 
-set(OPENCL_ICD_LOADER_HEADERS_DIR
-    "${PROJECT_SOURCE_DIR}/external/OpenCL-Headers" CACHE PATH "Path to OpenCL
-    Headers")
-
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/install" CACHE PATH "Install Path" FORCE)
 endif()
 
-set(OPENCL_SDK_INCLUDE_DIRS
-    "${PROJECT_SOURCE_DIR}/external/OpenCL-Headers"
-    "${PROJECT_SOURCE_DIR}/external/OpenCL-CLHPP/include")
+add_subdirectory(external/OpenCL-Headers)
+add_subdirectory(external/OpenCL-ICD-Loader)
+add_subdirectory(external/OpenCL-CLHPP)
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/external/OpenCL-ICD-Loader)
-add_subdirectory(${PROJECT_SOURCE_DIR}/samples)
+add_subdirectory(lib)
+add_subdirectory(samples)
 
-set_target_properties(OpenCL PROPERTIES LIBRARY_OUTPUT_DIRECTORY
-    ${CMAKE_CURRENT_BINARY_DIR})
+include (GNUInstallDirs)
+set_target_properties(OpenCL OpenCLUtils OpenCLUtilsCpp
+  PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}
+    RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}
+)

@@ -20,7 +20,14 @@ endif()
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Modules)
 find_package(TCLAP REQUIRED)
-set(OPENCL_SAMPLE_INCLUDES ${TCLAP_INCLUDE_DIR})
+set(OPENCL_SAMPLE_INCLUDES
+    ${TCLAP_INCLUDE_DIR}
+    ${PROJECT_SOURCE_DIR}/third_party/cargs)
+
+# add math library to link if needed
+# method by Michael Ambrus, https://stackoverflow.com/questions/34625627
+include(CheckLibraryExists)
+CHECK_LIBRARY_EXISTS(m sin "" HAVE_LIB_M)
 
 # Usage:
 # add_sample(
@@ -56,11 +63,13 @@ macro(add_sample)
     )
     target_link_libraries(${OPENCL_SAMPLE_TARGET}
       PRIVATE
+        cargs
         OpenCL::Headers
         OpenCL::HeadersCpp
         OpenCL::OpenCL
         OpenCL::Utils
         OpenCL::UtilsCpp
+        $<$<BOOL:${HAVE_LIB_M}>:m>
         ${OPENCL_SAMPLE_LIBS}
     )
     target_compile_definitions(${OPENCL_SAMPLE_TARGET}

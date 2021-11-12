@@ -1,4 +1,4 @@
-# Copyright (c) 2020 The Khronos Group Inc.
+# Copyright (c) 2021 The Khronos Group Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(khr)
-if(OPENCL_SDK_BUILD_OPENGL_SAMPLES)
-  add_subdirectory(khr/conway)
-  add_subdirectory(khr/nbody)
-endif()
+add_sample(
+    TEST
+    TARGET nbodycpp
+    VERSION 120
+    SOURCES main.cpp
+    INCLUDES ${TCLAP_INCLUDE_DIR}
+    LIBS sfml-window OpenGL::GL GLEW::GLEW glm::glm
+    )

@@ -75,7 +75,7 @@ public:
             device_id,
             device_type
         }
-        , particle_count(32768)
+        , particle_count(8192)
         , x_abs_range(192.f)
         , y_abs_range(128.f)
         , z_abs_range(32.f)

@@ -17,7 +17,7 @@
 // OpenCL Utils includes
 #include <CL/Utils/Utils.hpp>
 
-cl::vector<cl_context_properties> cl::sdk::get_interop_context_properties(const cl::Device& device)
+cl::vector<cl_context_properties> cl::util::get_interop_context_properties(const cl::Device& device, cl_int*)
 {
     return cl::vector<cl_context_properties>{
         CL_CONTEXT_PLATFORM, reinterpret_cast<cl_context_properties>(cl::Platform{ device.getInfo<CL_DEVICE_PLATFORM>() }()),

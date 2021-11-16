@@ -3,9 +3,10 @@
 // STL includes
 #include <stdbool.h>
 
+// OpenCL includes
 #include <CL/cl.h>
 
-struct cl_sdk_options_Triplet
+struct cl_sdk_options_DeviceTriplet
 {
     int plat_index;
     int dev_index;
@@ -20,11 +21,11 @@ struct cl_sdk_options_Diagnostic
 
 struct cl_sdk_options_SingleDevice
 {
-    struct cl_sdk_options_Triplet triplet;
+    struct cl_sdk_options_DeviceTriplet triplet;
 };
 
 struct cl_sdk_options_MultiDevice
 {
-    struct cl_sdk_options_Triplet * triplets;
+    struct cl_sdk_options_DeviceTriplet * triplets;
     size_t number;
 };

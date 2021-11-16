@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// OpenCL SDK
+// OpenCL SDK includes
 #include <CL/Utils/Utils.h>
 #include <CL/SDK/CLI.h>
 #include <CL/SDK/Random.h>
@@ -35,16 +35,6 @@ cag_option SaxpyOptions[] = {
   .value_name = "(positive integer)",
   .description = "Length of input"}
 };
-
-pcg32_random_t rng;
-
-void parse_error(cag_option * opts, size_t const num_opts)
-{
-    printf("Usage: saxpy [OPTION]...\n");
-    //printf("Demonstrates the cargs library.\n\n");
-    cag_option_print(opts, num_opts, stdout);
-    exit(CL_INVALID_ARG_VALUE);
-}
 
 ParseState parse_SaxpyOptions(const char identifier, cag_option_context * cag_context, struct options_Saxpy * opts)
 {
@@ -95,7 +85,7 @@ cl_int parse_options(int argc,
 
         if ((identifier == 'h') || (state == ParseError)) {
             printf("Usage: saxpy [OPTION]...\n");
-            //printf("Demonstrates the cargs library.\n\n");
+            printf("Demonstrates typical OpenCL application layout.\n\n");
             cag_option_print(opts, n, stdout);
             exit((state == ParseError) ? CL_INVALID_ARG_VALUE : CL_SUCCESS);
         }
@@ -104,6 +94,9 @@ cl_int parse_options(int argc,
 end:    free(opts);
     return error;
 }
+
+// Random number generator state
+pcg32_random_t rng;
 
 int main(int argc, char* argv[])
 {
@@ -120,9 +113,9 @@ int main(int argc, char* argv[])
     cl_program program = NULL;
 
     // Parse command-line options
-    struct cl_sdk_options_Diagnostic diag_opts = { .quiet = false };
+    struct cl_sdk_options_Diagnostic diag_opts = { .quiet = false, .verbose = false };
     struct cl_sdk_options_SingleDevice dev_opts = { .triplet = { 0, 0, CL_DEVICE_TYPE_ALL } };
-    struct options_Saxpy saxpy_opts = { .length = 1234 };
+    struct options_Saxpy saxpy_opts = { .length = 1048576 };
 
     OCLERROR_RET(parse_options(argc, argv, &diag_opts, &dev_opts, &saxpy_opts), error, end);
 
@@ -131,29 +124,15 @@ int main(int argc, char* argv[])
         dev_opts.triplet.dev_index, dev_opts.triplet.dev_type, &error), error, end);
     OCLERROR_PAR(context = clCreateContext(NULL, 1, &device, NULL, NULL, &error), error, end);
     OCLERROR_PAR(queue = clCreateCommandQueue(context, device, 0, &error), error, cont);
-    //OCLERROR_PAR(queue = clCreateCommandQueueWithProperties(context, device, NULL, &error), error, cont);
-    OCLERROR_RET(clGetDeviceInfo(device, CL_DEVICE_PLATFORM, sizeof(cl_platform_id), &platform, NULL), error, que);
+    OCLERROR_RET(clGetDeviceInfo(device, CL_DEVICE_PLATFORM, sizeof(cl_platform_id), &platform, NULL), error, cont);
+#if CL_HPP_TARGET_OPENCL_VERSION >= 200
+    OCLERROR_PAR(queue = clCreateCommandQueueWithProperties(context, device, NULL, &error), error, cont);
+#else
+    OCLERROR_PAR(queue = clCreateCommandQueue(context, device, CL_QUEUE_PROFILING_ENABLE, &error), error, cont);
+#endif
 
     if (!diag_opts.quiet) {
-        char * name = NULL, * tmp = NULL;
-        size_t n = 0;
-
-        // CL_PLATFORM_VENDOR is not supported by NVIDIA CUDA platform
-        //error = clGetPlatformInfo(platform, CL_PLATFORM_NAME, sizeof(size_t), NULL, &n);
-        OCLERROR_RET(clGetPlatformInfo(platform, CL_PLATFORM_NAME, sizeof(size_t), NULL, &n), error, ven);
-        MEM_CHECK(name = (char *)malloc(sizeof(char) * (n+1)), error, ven);
-        OCLERROR_RET(clGetPlatformInfo(platform, CL_PLATFORM_NAME, sizeof(char) * n, name, NULL), error, ven);
-        name[n] = '\0';
-        printf("Selected platform: %s\n", name);
-
-ven:    OCLERROR_RET(clGetDeviceInfo(device, CL_DEVICE_NAME, sizeof(size_t), NULL, &n), error, nam);
-        MEM_CHECK(tmp = (char *)realloc(name, sizeof(char) * (n+1)), error, nam);
-        name = tmp;
-        OCLERROR_RET(clGetDeviceInfo(device, CL_DEVICE_NAME, sizeof(char) * n, name, NULL), error, nam);
-        name[n] = '\0';
-        printf("Selected device: %s\n\n", name);
-
-nam:    free(name);
+        cl_util_print_device_info(device);
     }
 
     // Compile kernel
@@ -169,13 +148,13 @@ nam:    free(name);
     const size_t length = saxpy_opts.length;
 
     pcg32_srandom_r(&rng, 111111, -222);
-    cl_float * arr_x, * arr_y,
-        a = pcg32_random_float(&rng);
+    cl_float * arr_x, * arr_y, a;
     MEM_CHECK(arr_x = (cl_float *)malloc(sizeof(cl_float) * length), error, sxp);
     MEM_CHECK(arr_y = (cl_float *)malloc(sizeof(cl_float) * length), error, arrx);
 
-    cl_sdk_fill_with_random_range(&rng, arr_x, length, -100, 100);
-    cl_sdk_fill_with_random_range(&rng, arr_y, length, -100, 100);
+    cl_sdk_fill_with_random_floats_range(&rng, &a, 1, -100, 100);
+    cl_sdk_fill_with_random_floats_range(&rng, arr_x, length, -100, 100);
+    cl_sdk_fill_with_random_floats_range(&rng, arr_y, length, -100, 100);
 
     // Initialize device-side storage
     cl_mem buf_x, buf_y;
@@ -216,6 +195,6 @@ prg:    OCLERROR_RET(clReleaseProgram(program), end_error, ker);
 ker:    free(kernel);
 que:    OCLERROR_RET(clReleaseCommandQueue(queue), end_error, cont);
 cont:   OCLERROR_RET(clReleaseContext(context), end_error, end);
-end:    if (error) printf("Error: %i", error);
+end:    if (error) cl_util_print_error(error);
     return error;
 }

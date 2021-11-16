@@ -1,11 +1,11 @@
-// OpenCL SDK
+// OpenCL SDK includes
 #include <CL/Utils/Utils.h>
 #include <CL/Utils/Error.h>
 #include <CL/Utils/Context.h>
 
 // STL includes
-#include <stdlib.h> // malloc, free
-#include <stdio.h>  // printf
+#include <stdlib.h>     // malloc, free
+#include <stdio.h>      // printf
 
 static cl_uint MAXOCLPLAT = 65535;
 static cl_uint MAXOCLDEV = 65535;
@@ -78,6 +78,88 @@ plat:   free(platforms);
 end:    return result;
 }
 
+UTILS_EXPORT
+void cl_util_print_device_info(cl_device_id device)
+{
+    cl_int error = CL_SUCCESS;
+    char * name = NULL;
+
+    cl_platform_id platform;
+    OCLERROR_PAR(clGetDeviceInfo(device, CL_DEVICE_PLATFORM, sizeof(cl_platform_id), &platform, NULL), error, nam);
+
+    OCLERROR_PAR(name = cl_util_get_platform_info(platform, CL_PLATFORM_VENDOR, &error), error, ven);
+    printf("Selected platform by %s\n", name);
+
+ven:    free(name);
+    OCLERROR_PAR(name = cl_util_get_device_info(device, CL_DEVICE_NAME, &error), error, ocl);
+    printf("Selected device: %s\n", name);
+
+ocl:    free(name);
+    OCLERROR_PAR(name = cl_util_get_device_info(device, CL_DEVICE_OPENCL_C_VERSION, &error), error, nam);
+    printf("%s\n\n", name);
+
+nam:    free(name);
+}
+
+UTILS_EXPORT
+char * cl_util_get_platform_info(cl_platform_id platform, cl_platform_info info, cl_int * error)
+{
+    char * name = NULL;
+    size_t n = 0;
+
+    switch (info) {
+        case CL_PLATFORM_PROFILE:
+        case CL_PLATFORM_VERSION:
+        case CL_PLATFORM_NAME:
+        case CL_PLATFORM_VENDOR:
+        case CL_PLATFORM_EXTENSIONS:
+            OCLERROR_RET(clGetPlatformInfo(platform, info, 0, NULL, &n), *error, err);
+            MEM_CHECK(name = (char *)malloc(sizeof(char) * (n+1)), *error, err);
+            OCLERROR_RET(clGetPlatformInfo(platform, info, sizeof(char) * n, name, NULL), *error, err);
+            name[n] = '\0';
+            return name;
+    }
+
+err:    free(name);
+    return NULL;
+}
+
+UTILS_EXPORT
+char * cl_util_get_device_info(cl_device_id device, cl_device_info info, cl_int * error)
+{
+    char * name = NULL;
+    size_t n = 0;
+
+    switch (info) {
+        case CL_DEVICE_EXTENSIONS:
+        case CL_DEVICE_NAME:
+        case CL_DEVICE_VENDOR:
+        case CL_DEVICE_PROFILE:
+        case CL_DEVICE_VERSION:
+#ifdef CL_VERSION_1_1
+        case CL_DEVICE_OPENCL_C_VERSION:
+#endif
+#ifdef CL_VERSION_1_2
+        case CL_DEVICE_BUILT_IN_KERNELS:
+#endif
+#ifdef CL_VERSION_2_1
+        case CL_DEVICE_IL_VERSION:
+#endif
+#ifdef CL_VERSION_3_0
+        case CL_DEVICE_LATEST_CONFORMANCE_VERSION_PASSED:
+#endif
+        case CL_DRIVER_VERSION:
+            OCLERROR_RET(clGetDeviceInfo(device, info, 0, NULL, &n), *error, err);
+            MEM_CHECK(name = (char *)malloc(sizeof(char) * (n+1)), *error, err);
+            OCLERROR_RET(clGetDeviceInfo(device, info, sizeof(char) * n, name, NULL), *error, err);
+            name[n] = '\0';
+            return name;
+    }
+
+err:    free(name);
+    return NULL;
+}
+
 // build program and show log if build is not successful
 UTILS_EXPORT
 cl_int cl_util_build_program(cl_program pr, const cl_device_id dev, const char * opt) {
@@ -90,7 +172,7 @@ cl_int cl_util_build_program(cl_program pr, const cl_device_id dev, const char *
         if ((program_log = (char *)malloc((log_size + 1) * sizeof(char)))) {
             clGetProgramBuildInfo(pr, dev, CL_PROGRAM_BUILD_LOG, log_size, program_log, NULL);
             program_log[log_size] = '\0';
-            printf("Build log is:\n\n%s\n\n", program_log);
+            printf("Build log is:\n\n%s\nOptions:\n%s\n\n", program_log, opt);
             free(program_log);
         }
     }

@@ -1,8 +1,9 @@
 #pragma once
 
 // STL includes
-#include <stdint.h>
-#include<math.h>
+#include <stdint.h>     // uint64_t, uint32_t
+#include <stdbool.h>    // bool
+#include <math.h>       // ldexpf
 
 /*
  * PCG Random Number Generation for C.
@@ -49,12 +50,12 @@ uint32_t pcg32_random_r(pcg32_random_t * rng)
 
 cl_float pcg32_random_float(pcg32_random_t * rng)
 {
-    return ldexp(pcg32_random_r(rng), -32);
+    return ldexpf(pcg32_random_r(rng), -32);
 }
 
 cl_float pcg32_random_float_range(pcg32_random_t * rng, cl_float low, cl_float hi)
 {
-    return ldexp(pcg32_random_r(rng), -32) * (hi - low) + low;
+    return ldexpf(pcg32_random_r(rng), -32) * (hi - low) + low;
 }
 
 // pcg32_srandom(initstate, initseq)
@@ -71,14 +72,46 @@ void pcg32_srandom_r(pcg32_random_t * rng, uint64_t initstate, uint64_t initseq)
     pcg32_random_r(rng);
 }
 
-// fills array with random floats in [0, 1)
-void cl_sdk_fill_with_random(pcg32_random_t * rng, cl_float * arr, size_t len)
+// fill array with random floats in [0, 1)
+void cl_sdk_fill_with_random_floats(pcg32_random_t * rng, cl_float * arr, const size_t len)
 {
-    for (; len > 0; arr[--len] = pcg32_random_float(rng));
+    for (size_t index = 0; index < len; ++index)
+        arr[index] = pcg32_random_float(rng);
 }
 
-void cl_sdk_fill_with_random_range(pcg32_random_t * rng, cl_float * arr, size_t len, cl_float low, cl_float hi)
+void cl_sdk_fill_with_random_floats_range(pcg32_random_t * rng,
+    cl_float * arr, const size_t len, const cl_float low, const cl_float hi)
 {
     cl_float diff = hi - low;
-    for (; len > 0; arr[--len] = pcg32_random_float(rng) * diff + low);
+    for (size_t index = 0; index < len; ++index)
+        arr[index] = pcg32_random_float(rng) * diff + low;
+}
+
+// return uniformly distributed numbers in the range [low, hi]
+// use rejection sampling from uniform bit distribution
+void cl_sdk_fill_with_random_ints_range(pcg32_random_t * rng,
+    cl_int * arr, const size_t len, const cl_int low, const cl_int hi)
+{
+    const uint32_t
+        diff = hi - low,
+        bits_of_uint32_t = 32,
+        bits_needed = diff ? log2(diff) + 1 : 1,
+        mask = diff ? (1u << bits_needed) - 1 : 0;
+    for (size_t index = 0; index < len; ++index) {
+        uint32_t res;
+        bool reject = true;
+        do {
+            res = pcg32_random_r(rng); // get 32 random bits
+            // and take enough of them to cover [0..diff] range
+            for (int i = 0; i < bits_of_uint32_t / bits_needed; ++i)
+                if ((res & mask) <= diff) { // no rejection
+                    res &= mask; // take this number
+                    reject = false;
+                    break;
+                }
+                else // take next piece of bits
+                    res >>= bits_needed;
+        } while (reject);
+        arr[index] = low + (cl_int)res;
+    }
 }

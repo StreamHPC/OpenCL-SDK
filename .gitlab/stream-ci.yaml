@@ -20,7 +20,7 @@ variables:
 ########################
 
 .toolchain-matrix-minimum:
-  image: streamhpc/opencl-sdk-base:ubuntu-18.04-20211006
+  image: streamhpc/opencl-sdk-base:ubuntu-18.04-20211103
   parallel:
     matrix:
   # NOTE: Old CMake versions will likely not use cutting-edge compilers
@@ -40,7 +40,7 @@ variables:
     - git submodule sync && git submodule update --init --recursive
 
 .toolchain-matrix-latest:
-  image: streamhpc/opencl-sdk-base:ubuntu-18.04-20211006
+  image: streamhpc/opencl-sdk-base:ubuntu-18.04-20211103
   parallel:
     matrix:
   # NOTE: Cutting edge CMake versions will likely not use old compilers
@@ -59,6 +59,39 @@ variables:
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@projects.streamhpc.com/".insteadOf "git@projects.streamhpc.com:"
     - git submodule sync && git submodule update --init --recursive
 
+.exec-matrix-minimum:
+  parallel:
+    matrix:
+  # NOTE: Old CMake versions will likely not use cutting-edge compilers
+      - C_COMPILER: gcc-7
+        CXX_COMPILER: g++-7
+      - C_COMPILER: gcc-8
+        CXX_COMPILER: g++-8
+      - C_COMPILER: clang-8
+        CXX_COMPILER: clang++-8
+      - C_COMPILER: clang-9
+        CXX_COMPILER: clang++-9
+      - C_COMPILER: clang-10
+        CXX_COMPILER: clang++-10
+  before_script:
+    - export PATH=/opt/Kitware/CMake/$CMAKE_MINIMUM/bin:$PATH
+
+.exec-matrix-latest:
+  parallel:
+    matrix:
+  # NOTE: Cutting edge CMake versions will likely not use old compilers
+      - C_COMPILER: gcc-9
+        CXX_COMPILER: g++-9
+      - C_COMPILER: gcc-10
+        CXX_COMPILER: g++-10
+      - C_COMPILER: clang-11
+        CXX_COMPILER: clang++-11
+      - C_COMPILER: clang-12
+        CXX_COMPILER: clang++-12
+      - C_COMPILER: clang-13
+        CXX_COMPILER: clang++-13
+  before_script:
+    - export PATH=/opt/Kitware/CMake/$CMAKE_LATEST/bin:$PATH
 
 #################
 ##             ##
@@ -73,15 +106,10 @@ build:cmake-minimum:
   # NOTE 2: Lack of space in -H<folder> -B<folder> is important!
   #         https://stackoverflow.com/a/20611964/1476661
   script:
-    # Download, extract TCLAP
-    - wget https://github.com/mirror/tclap/archive/refs/tags/v1.2.4.tar.gz
-      --directory-prefix $DEPS_DIR
-    - cmake -E tar xzf $DEPS_DIR/v1.2.4.tar.gz
-    - cmake -E rename tclap-1.2.4/ $DEPS_DIR/tclap-1.2.4
-    - cmake -E remove $DEPS_DIR/v1.2.4.tar.gz
     # Clone, configure, build, install OpenCL-SDK
     - cmake
       -G Ninja
+      -D CMAKE_TOOLCHAIN_FILE=/opt/Microsoft/vcpkg/scripts/buildsystems/vcpkg.cmake
       -D CMAKE_C_COMPILER=$C_COMPILER
       -D CMAKE_CXX_COMPILER=$CXX_COMPILER
       -D CMAKE_BUILD_TYPE=Release
@@ -94,7 +122,6 @@ build:cmake-minimum:
       -D OPENCL_SDK_BUILD_SAMPLES=ON
       -D OPENCL_SDK_TEST_SAMPLES=ON
       -D CMAKE_INSTALL_PREFIX=$INSTALL_DIR
-      -D TCLAP_INCLUDE_PATH=$DEPS_DIR/tclap-1.2.4/include
       -B$BUILD_DIR
       -H$CI_PROJECT_DIR
     - cmake
@@ -104,7 +131,6 @@ build:cmake-minimum:
     paths:
       - $BUILD_DIR
       - $INSTALL_DIR
-      - $DEPS_DIR/tclap-1.2.4
     exclude:
       - build/**/CMakeFiles/
     expire_in: 2 weeks
@@ -113,15 +139,10 @@ build:cmake-latest:
   extends: .toolchain-matrix-latest
   stage: build
   script:
-    # Download, extract TCLAP
-    - wget https://github.com/mirror/tclap/archive/refs/tags/v1.2.4.tar.gz
-      --directory-prefix $DEPS_DIR
-    - cmake -E tar xzf $DEPS_DIR/v1.2.4.tar.gz
-    - cmake -E rename tclap-1.2.4/ $DEPS_DIR/tclap-1.2.4
-    - cmake -E remove $DEPS_DIR/v1.2.4.tar.gz
     # Clone, configure, build, install OpenCL-SDK
     - cmake
       -G "Ninja Multi-Config"
+      -D CMAKE_TOOLCHAIN_FILE=/opt/Microsoft/vcpkg/scripts/buildsystems/vcpkg.cmake
       -D CMAKE_C_COMPILER=$C_COMPILER
       -D CMAKE_CXX_COMPILER=$CXX_COMPILER
       -D BUILD_TESTING=ON
@@ -132,7 +153,6 @@ build:cmake-latest:
       -D BUILD_TESTS=ON
       -D OPENCL_SDK_BUILD_SAMPLES=ON
       -D OPENCL_SDK_TEST_SAMPLES=ONINSTALL_DIR
-      -D TCLAP_INCLUDE_PATH=$DEPS_DIR/tclap-1.2.4/include
       -B $BUILD_DIR
       -S $CI_PROJECT_DIR
     - cmake
@@ -147,7 +167,6 @@ build:cmake-latest:
     paths:
       - $BUILD_DIR
       - $INSTALL_DIR
-      - $DEPS_DIR/tclap-1.2.4
     exclude:
       - build/**/CMakeFiles/
     expire_in: 2 weeks
@@ -159,27 +178,116 @@ build:cmake-latest:
 ##            ##
 ################
 
-test:cmake-minimum:
-  extends: .toolchain-matrix-minimum
+test:cmake-minimum-rocm:
+  extends: .exec-matrix-minimum
+  image: streamhpc/opencl-sdk-rocm:ubuntu-18.04-20211104
+  tags:
+    - rocm-stable
   stage: test
   needs:
     - build:cmake-minimum
-  # Until a suitable runtime is found
-  allow_failure: true
   # NOTE: CTest has to be invoked from the build folder.
   script:
     - cd $BUILD_DIR
     - ctest --output-on-failure
 
-test:cmake-latest:
-  extends: .toolchain-matrix-minimum
+test:cmake-latest-rocm:
+  extends: .exec-matrix-latest
+  image: streamhpc/opencl-sdk-rocm:ubuntu-18.04-20211104
+  tags:
+    - rocm-stable
   stage: test
   needs:
     - build:cmake-latest
-  # Until a suitable runtime is found
-  allow_failure: true
   # NOTE: CTest has to be invoked from the build folder.
   script:
     - cd $BUILD_DIR
     - ctest --output-on-failure -C Debug
     - ctest --output-on-failure -C Release 
+
+###################
+##               ##
+## Consume stage ##
+##               ##
+###################
+
+consume:cmake-minimum:
+  extends: .toolchain-matrix-minimum
+  stage: consume
+  needs:
+    - build:cmake-minimum
+  # NOTE 1: CMake creates build and install folders as needed.
+  # NOTE 2: Lack of space in -H<folder> -B<folder> is important!
+  #         https://stackoverflow.com/a/20611964/1476661
+  script:
+    # Test Package Config dependence
+    - cmake
+      -G Ninja
+      -D CMAKE_C_COMPILER=$C_COMPILER
+      -D CMAKE_CXX_COMPILER=$CXX_COMPILER
+      -D CMAKE_BUILD_TYPE=Release
+      -D CMAKE_PREFIX_PATH=$INSTALL_DIR
+      -D BUILD_TESTING=ON
+      -B$CI_PROJECT_DIR/downstream/pkgconfig
+      -H$CI_PROJECT_DIR/test/cmake/pkgconfig
+    - cmake
+      --build $CI_PROJECT_DIR/downstream/pkgconfig
+    - cd $CI_PROJECT_DIR/downstream/pkgconfig
+    - ctest --output-on-failure
+    # Test Find Module dependence
+    - cmake
+      -G Ninja
+      -D CMAKE_C_COMPILER=$C_COMPILER
+      -D CMAKE_CXX_COMPILER=$CXX_COMPILER
+      -D CMAKE_BUILD_TYPE=Release
+      -D CMAKE_PREFIX_PATH=$INSTALL_DIR
+      -D BUILD_TESTING=ON
+      -B$CI_PROJECT_DIR/downstream/findmodule
+      -H$CI_PROJECT_DIR/test/cmake/findmodule
+    - cmake
+      --build $CI_PROJECT_DIR/downstream/findmodule
+    - cd $CI_PROJECT_DIR/downstream/findmodule
+    - ctest --output-on-failure
+
+consume:cmake-latest:
+  extends: .toolchain-matrix-latest
+  stage: consume
+  needs:
+    - build:cmake-latest
+  script:
+    # Test Package Config dependence
+    - cmake
+      -G "Ninja Multi-Config"
+      -D CMAKE_C_COMPILER=$C_COMPILER
+      -D CMAKE_CXX_COMPILER=$CXX_COMPILER
+      -D CMAKE_PREFIX_PATH=$INSTALL_DIR
+      -D BUILD_TESTING=ON
+      -B $CI_PROJECT_DIR/downstream/pkgconfig
+      -S $CI_PROJECT_DIR/test/cmake/pkgconfig
+    - cmake
+      --build $CI_PROJECT_DIR/downstream/pkgconfig
+      --config Debug
+    - cmake
+      --build $CI_PROJECT_DIR/downstream/pkgconfig
+      --config Release
+    - cd $CI_PROJECT_DIR/downstream/pkgconfig
+    - ctest --output-on-failure -C Debug
+    - ctest --output-on-failure -C Release
+    # Test Find Module dependence
+    - cmake
+      -G "Ninja Multi-Config"
+      -D CMAKE_C_COMPILER=$C_COMPILER
+      -D CMAKE_CXX_COMPILER=$CXX_COMPILER
+      -D CMAKE_PREFIX_PATH=$INSTALL_DIR
+      -D BUILD_TESTING=ON
+      -B $CI_PROJECT_DIR/downstream/findmodule
+      -S $CI_PROJECT_DIR/test/cmake/findmodule
+    - cmake
+      --build $CI_PROJECT_DIR/downstream/findmodule
+      --config Debug
+    - cmake
+      --build $CI_PROJECT_DIR/downstream/findmodule
+      --config Release
+    - cd $CI_PROJECT_DIR/downstream/findmodule
+    - ctest --output-on-failure -C Debug
+    - ctest --output-on-failure -C Release

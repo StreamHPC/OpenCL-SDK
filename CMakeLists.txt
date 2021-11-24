@@ -60,6 +60,8 @@ if(OPENCL_SDK_BUILD_OPENGL_SAMPLES)
     REQUIRED
     COMPONENTS window graphics
   )
+  find_package(GLEW REQUIRED)
+  find_package(glm CONFIG REQUIRED)
 endif()
 
 add_subdirectory(lib)

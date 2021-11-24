@@ -66,6 +66,8 @@ macro(add_sample)
         OpenCL::OpenCL
         OpenCL::Utils
         OpenCL::UtilsCpp
+        OpenCL::SDK
+        OpenCL::SDKCpp
         $<$<BOOL:${HAVE_LIB_M}>:m>
         ${OPENCL_SAMPLE_LIBS}
     )
@@ -88,7 +90,7 @@ macro(add_sample)
         install(TARGETS ${OPENCL_SAMPLE_TARGET} CONFIGURATIONS ${CONFIG} DESTINATION ${CONFIG})
         install(FILES ${OPENCL_SAMPLE_KERNELS} CONFIGURATIONS ${CONFIG} DESTINATION ${CONFIG})
     endforeach()
-    if(OPENCL_SDK_TEST_SAMPLES)
+    if(OPENCL_SDK_TEST_SAMPLES AND OPENCL_SAMPLE_TEST)
         add_test(
           NAME ${OPENCL_SAMPLE_TARGET}
           COMMAND ${OPENCL_SAMPLE_TARGET}

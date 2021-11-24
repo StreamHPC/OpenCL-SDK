@@ -1,12 +1,13 @@
 #pragma once
 
-// STL includes
-//#include <iostream>
+// OpenCL Utils includes
+#include "OpenCLUtils_Export.h"
+
+// OpenCL Utils includes
+#include <CL/Utils/ErrorCodes.h>
 
 // OpenCL includes
 #include <CL/opencl.hpp>
-
-#define CL_UTIL_INDEX_OUT_OF_RANGE -2000
 
 namespace cl
 {
@@ -61,23 +62,8 @@ namespace util
 
 namespace detail
 {
-    void errHandler(cl_int err, cl_int* errPtr, const char* errStr = nullptr);
+    UTILS_EXPORT cl_int errHandler(cl_int err, cl_int* errPtr, const char* errStr = nullptr);
 }
 
 }
-}
-
-void cl::util::detail::errHandler(cl_int err, cl_int* errPtr, const char* errStr)
-{
-    if (err != CL_SUCCESS)
-    {
-#if defined(CL_HPP_ENABLE_EXCEPTIONS)
-        throw cl::util::Error{err, errStr};
-#else
-        (void)errStr; // suppress unused variable warning
-        //std::cerr << errStr << std::endl;
-        if (errPtr != nullptr)
-            *errPtr = err;
-#endif
-    }
 }

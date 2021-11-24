@@ -24,6 +24,7 @@ project(OpenCL-SDK
 
 include(CMakeDependentOption)
 option(OPENCL_SDK_BUILD_SAMPLES "Build sample code" ON)
+cmake_dependent_option(OPENCL_SDK_BUILD_OPENGL_SAMPLES "Build OpenCL-OpenGL interop sample code" ON OPENCL_SDK_BUILD_SAMPLES OFF)
 cmake_dependent_option(OPENCL_SDK_TEST_SAMPLES "Add CTest to samples (where applicable)" ON OPENCL_SDK_BUILD_SAMPLES OFF)
 
 include(CTest)
@@ -43,6 +44,23 @@ add_subdirectory(external/OpenCL-CLHPP)
 
 add_subdirectory(third_party/cargs)
 add_subdirectory(third_party/stb)
+if(OPENCL_SDK_BUILD_OPENGL_SAMPLES)
+  cmake_minimum_required(VERSION 3.10) # SFML 2 won't find Freetype::Freetype under 3.10
+  find_package(OpenGL REQUIRED)
+  if(CMAKE_SYSTEM_NAME MATCHES Linux) # TODO: Add EGL support
+    # OpenGL doesn't explicitly depend on X11 (as of CMake v3.2) but we'll need it
+    find_package(X11 REQUIRED)
+  endif()
+  find_package(GLEW REQUIRED)
+  if(NOT TARGET OpenGL::GLU)
+    # GLU is a dependency of GLEW but it's not advertized as an OpenGL COMPONENT
+    message(FATAL_ERROR "GLEW depends on GLU but was not found.")
+  endif()
+  find_package(SFML 2
+    REQUIRED
+    COMPONENTS window graphics
+  )
+endif()
 
 add_subdirectory(lib)
 add_subdirectory(samples)

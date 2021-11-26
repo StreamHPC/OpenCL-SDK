@@ -17,12 +17,8 @@
 #include <GL/glew.h>
 
 // OpenCL SDK includes
-#include <CL/Utils/Context.hpp>
-#include <CL/Utils/InteropWindow.hpp>
-#include <CL/SDK/Context.hpp>
-#include <CL/SDK/Options.hpp>
-#include <CL/SDK/CLI.hpp>
-#include <CL/SDK/Random.hpp>
+#include <CL/Utils/Utils.hpp>
+#include <CL/SDK/SDK.hpp>
 
 // STL includes
 #include <iostream>

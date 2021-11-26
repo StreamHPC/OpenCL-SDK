@@ -54,7 +54,7 @@ struct DoubleBuffer
     }
 };
 
-class NBody : public cl::util::InteropWindow
+class NBody : public cl::sdk::InteropWindow
 {
 public:
     explicit NBody(

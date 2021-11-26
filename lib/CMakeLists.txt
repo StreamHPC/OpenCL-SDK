@@ -126,27 +126,27 @@ foreach(SDK_LIB_NAME IN ITEMS SDK SDKCpp)
       set(SDK_LIB_INCLUDES
         ${TCLAP_INCLUDE_DIR}
       )
-    if(CMAKE_VERSION VERSION_LESS 3.4)
-      list(APPEND SDK_LIB_DEPS ${OPENGL_LIBRARIES})
+      if(CMAKE_VERSION VERSION_LESS 3.4)
+        list(APPEND SDK_LIB_DEPS ${OPENGL_LIBRARIES})
+      else()
+        list(APPEND SDK_LIB_DEPS OpenGL::GL)
+      endif()
+      set(SDK_CL_VERSION_MACRO_NAME CL_HPP_TARGET_OPENCL_VERSION)
     else()
-      list(APPEND SDK_LIB_DEPS OpenGL::GL)
+      message(FATAL_ERROR "Unkown SDK flavor")
     endif()
-    set(SDK_CL_VERSION_MACRO_NAME CL_HPP_TARGET_OPENCL_VERSION)
-  else()
-    message(FATAL_ERROR "Unkown SDK flavor")
-  endif()
-  set(SDK_LIB_TARGET OpenCL${SDK_LIB_NAME})
-  add_library(${SDK_LIB_TARGET} ${SDK_LIB_SOURCES})
-  add_library(OpenCL::${SDK_LIB_NAME} ALIAS ${SDK_LIB_TARGET})
-
-  string(TOUPPER ${SDK_LIB_NAME} UPPER_SDK_LIB_NAME)
-  generate_export_header(${SDK_LIB_TARGET}
-    EXPORT_MACRO_NAME ${UPPER_SDK_LIB_NAME}_EXPORT
-    EXPORT_FILE_NAME OpenCL${SDK_LIB_NAME}_Export.h
-  )
-
-  target_include_directories(${SDK_LIB_TARGET}
-    PUBLIC
+    set(SDK_LIB_TARGET OpenCL${SDK_LIB_NAME})
+    add_library(${SDK_LIB_TARGET} ${SDK_LIB_SOURCES})
+    add_library(OpenCL::${SDK_LIB_NAME} ALIAS ${SDK_LIB_TARGET})
+  
+    string(TOUPPER ${SDK_LIB_NAME} UPPER_SDK_LIB_NAME)
+    generate_export_header(${SDK_LIB_TARGET}
+      EXPORT_MACRO_NAME ${UPPER_SDK_LIB_NAME}_EXPORT
+      EXPORT_FILE_NAME OpenCL${SDK_LIB_NAME}_Export.h
+    )
+  
+    target_include_directories(${SDK_LIB_TARGET}
+      PUBLIC
         ${SDK_LIB_INCLUDES}
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
       $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
@@ -170,7 +170,8 @@ foreach(SDK_LIB_NAME IN ITEMS SDK SDKCpp)
 
   set_target_properties(${SDK_LIB_TARGET}
     PROPERTIES
-      LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
+      LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}
+      RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}
       FOLDER "Libraries/${SDK_LIB_NAME}"
   )
 endforeach()

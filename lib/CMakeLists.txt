@@ -123,6 +123,9 @@ foreach(SDK_LIB_NAME IN ITEMS SDK SDKCpp)
       sfml-window
       sfml-graphics
     )
+      set(SDK_LIB_INCLUDES
+        ${TCLAP_INCLUDE_DIR}
+      )
     if(CMAKE_VERSION VERSION_LESS 3.4)
       list(APPEND SDK_LIB_DEPS ${OPENGL_LIBRARIES})
     else()
@@ -144,6 +147,7 @@ foreach(SDK_LIB_NAME IN ITEMS SDK SDKCpp)
 
   target_include_directories(${SDK_LIB_TARGET}
     PUBLIC
+        ${SDK_LIB_INCLUDES}
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
       $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
       $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>

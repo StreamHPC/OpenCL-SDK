@@ -18,8 +18,6 @@ else()
     set(OPENCL_SAMPLE_CONFIGS ${CMAKE_BUILD_TYPE})
 endif()
 
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Modules)
-find_package(TCLAP REQUIRED)
 # add math library to link if needed
 # method by Michael Ambrus, https://stackoverflow.com/questions/34625627
 include(CheckLibraryExists)

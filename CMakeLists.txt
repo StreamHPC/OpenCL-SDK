@@ -68,14 +68,9 @@ if(OPENCL_SDK_BUILD_OPENGL_SAMPLES)
 endif()
 
 add_subdirectory(lib)
-add_subdirectory(samples)
-
-include (GNUInstallDirs)
-set_target_properties(OpenCL OpenCLUtils OpenCLUtilsCpp OpenCLSDK OpenCLSDKCpp
-  PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}
-    RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}
-)
+if(OPENCL_SDK_BUILD_OPENGL_SAMPLES)
+  add_subdirectory(samples)
+endif()
 
 include(GNUInstallDirs)
 file(

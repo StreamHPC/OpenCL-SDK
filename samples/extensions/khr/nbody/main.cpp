@@ -63,7 +63,7 @@ public:
         cl_bitfield device_type = CL_DEVICE_TYPE_DEFAULT
     )
         : InteropWindow{
-            sf::VideoMode::VideoMode(800,800),
+            sf::VideoMode(800,800),
             "Gravitational NBody",
             sf::Style::Default,
             sf::ContextSettings{

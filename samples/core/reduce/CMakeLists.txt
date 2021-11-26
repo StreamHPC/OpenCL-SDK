@@ -22,5 +22,4 @@ add_sample(
     TEST
     TARGET reducecpp
     VERSION 300
-    SOURCES main.cpp
-    INCLUDES ${TCLAP_INCLUDE_DIR})
+    SOURCES main.cpp)

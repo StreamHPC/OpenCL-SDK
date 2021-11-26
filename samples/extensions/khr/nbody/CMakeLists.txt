@@ -16,7 +16,4 @@ add_sample(
     TEST
     TARGET nbodycpp
     VERSION 120
-    SOURCES main.cpp
-    INCLUDES ${TCLAP_INCLUDE_DIR}
-    LIBS sfml-window OpenGL::GL GLEW::GLEW glm::glm
-    )
+    SOURCES main.cpp)

@@ -14,18 +14,7 @@ foreach(UTIL_LIB_NAME IN ITEMS Utils UtilsCpp)
     set(UTIL_LIB_DEPS
       OpenCL::HeadersCpp
       OpenCL::Utils
-      OpenGL::GL
-      GLEW::GLEW
-      $<$<PLATFORM_ID:Linux>:OpenGL::GLU>
-      sfml-window
-      sfml-graphics
     )
-    if(CMAKE_VERSION VERSION_LESS 3.4)
-      list(APPEND UTIL_LIB_DEPS ${OPENGL_LIBRARIES})
-    else()
-      list(APPEND UTIL_LIB_DEPS OpenGL::GL)
-    endif()
-    set(UTIL_CL_VERSION_MACRO_NAME CL_HPP_TARGET_OPENCL_VERSION)
   else()
     message(FATAL_ERROR "Unkown Util flavor")
   endif()
@@ -49,8 +38,6 @@ foreach(UTIL_LIB_NAME IN ITEMS Utils UtilsCpp)
     PUBLIC
       ${UTIL_LIB_DEPS}
       OpenCL::OpenCL
-    PRIVATE
-      cargs
   )
   target_compile_definitions(${UTIL_LIB_TARGET}
     PRIVATE
@@ -117,6 +104,8 @@ foreach(SDK_LIB_NAME IN ITEMS SDK SDKCpp)
     set(SDK_LIB_DEPS
       OpenCL::Headers
       OpenCL::Utils
+      cargs
+      stb
     )
     set(SDK_CL_VERSION_MACRO_NAME CL_TARGET_OPENCL_VERSION)
   elseif(SDK_LIB_NAME STREQUAL SDKCpp)

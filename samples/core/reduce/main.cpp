@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
                 reduce(
                     cl::EnqueueArgs{
                         queue,
-                        global(curr),
+                        (size_t)global(curr),
                         wgs
                     },
                     front,

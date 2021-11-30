@@ -93,18 +93,15 @@ cl_int parse_options(int argc,
         ParseState state = NotParsed;
         identifier = cag_option_get(&cag_context);
 
-        state = parse_DiagnosticOptions(identifier, diag_opts);
-        if (state == ParsedOK) continue;
-        state = parse_SingleDeviceOptions(identifier, &cag_context, dev_opts);
-        if (state == ParsedOK) continue;
-        state = parse_ReduceOptions(identifier, &cag_context, reduce_opts);
-        if (state == ParsedOK) continue;
+        PARS_OPTIONS(parse_DiagnosticOptions(identifier, diag_opts), state);
+        PARS_OPTIONS(parse_SingleDeviceOptions(identifier, &cag_context, dev_opts), state);
+        PARS_OPTIONS(parse_ReduceOptions(identifier, &cag_context, reduce_opts), state);
 
-        if ((identifier == 'h') || (state == ParseError)) {
+        if (identifier == 'h') {
             printf("Usage: reduce [OPTION]...\n");
-            printf("Demonstrates how to query various OpenCL extensions applicable \
-                in the context of a reduction algorithm and to touch up kernel sources \
-                at runtime to select the best kernel implementation for the task.\n\n");
+            printf("Demonstrates how to query various OpenCL extensions applicable "
+                "in the context of a reduction algorithm and to touch up kernel sources "
+                "at runtime to select the best kernel implementation for the task.\n\n");
             cag_option_print(opts, n, stdout);
             exit((state == ParseError) ? CL_INVALID_ARG_VALUE : CL_SUCCESS);
         }
@@ -137,10 +134,10 @@ int check_use_work_group_reduce(cl_platform_id platform, cl_device_id device, cl
             size_t n = 0;
 
             OCLERROR_RET(clGetDeviceInfo(device, CL_DEVICE_OPENCL_C_FEATURES,
-                sizeof(size_t), NULL, &n), *error, nam);
+                0, NULL, &n), *error, nam);
             MEM_CHECK(c_features = (cl_name_version *)malloc(sizeof(char) * n), *error, nam);
             OCLERROR_RET(clGetDeviceInfo(device, CL_DEVICE_OPENCL_C_FEATURES,
-                sizeof(char) * n, name, NULL), *error, cf);
+                sizeof(char) * n, c_features, NULL), *error, cf);
 
             const size_t feat = sizeof(char) * n / sizeof(cl_name_version);
             for (size_t i = 0; i < feat; ++i)
@@ -338,12 +335,14 @@ int main(int argc, char* argv[])
     OCLERROR_PAR(back = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_int) * new_size(length, factor), NULL, &error), error, buff);
 
     // Launch kernels
-    if (diag_opts.verbose)
-        { printf("Executing on device... "); fflush(stdout); }
+    if (diag_opts.verbose) {
+        printf("Executing on device... ");
+        fflush(stdout);
+    }
 
-    cl_ulong curr = length, steps = 0;
-    while ( curr > 1 )
-    {
+    cl_ulong curr = length;
+    cl_uint steps = 0;
+    while (curr > 1) {
         curr = new_size(curr, factor);
         ++steps;
     }
@@ -356,8 +355,7 @@ int main(int argc, char* argv[])
     GET_CURRENT_TIMER(dev_start)
     curr = length;
     pass = passes;
-    while ( curr > 1 )
-    {
+    while (curr > 1) {
         OCLERROR_RET(clSetKernelArg(reduce, 0, sizeof(cl_mem), &front), error, pas);
         OCLERROR_RET(clSetKernelArg(reduce, 1, sizeof(cl_mem), &back), error, pas);
         OCLERROR_RET(clSetKernelArg(reduce, 3, sizeof(cl_ulong), &curr), error, pas);
@@ -399,8 +397,7 @@ int main(int argc, char* argv[])
     else
         printf("Validation passed!\n\n");
 
-    if (!diag_opts.quiet)
-    {
+    if (!diag_opts.quiet) {
         printf("Total device execution as seen by host: %llu us.\n", (unsigned long long)(dev_time + 500) / 1000);
         printf("Reduction steps as measured by device :\n");
         for (size_t i = 0; i < steps; ++i)

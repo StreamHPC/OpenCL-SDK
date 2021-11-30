@@ -14,13 +14,6 @@
 
 add_sample(
     TEST
-    TARGET reduce
+    TARGET binaries
     VERSION 300
     SOURCES main.c)
-
-add_sample(
-    TEST
-    TARGET reducecpp
-    VERSION 300
-    SOURCES main.cpp
-    INCLUDES ${TCLAP_INCLUDE_DIR})

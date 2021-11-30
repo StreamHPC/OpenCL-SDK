@@ -81,7 +81,7 @@ cag_option SingleDeviceOptions[] = {
  {.identifier = 't',
   .access_letters = "t",
   .access_name = "type",
-  .value_name = "(all|cpu|gpu|acc|def)",
+  .value_name = "(all|cpu|gpu|acc|def|cus)",
   .description = "Type of device to use"}
 };
 
@@ -93,6 +93,7 @@ cl_device_type get_dev_type(const char * in)
     else if (!strcmp(in, "gpu")) return CL_DEVICE_TYPE_GPU;
     else if (!strcmp(in, "acc")) return CL_DEVICE_TYPE_ACCELERATOR;
     else if (!strcmp(in, "def")) return CL_DEVICE_TYPE_DEFAULT;
+    else if (!strcmp(in, "cus")) return CL_DEVICE_TYPE_CUSTOM;
     else return CL_DEVICE_TYPE_ALL;//CL_INVALID_DEVICE_TYPE;// "Unkown device type after cli parse. Should not have happened."
 }
 
@@ -100,9 +101,9 @@ ParseState parse_SingleDeviceOptions(const char identifier, cag_option_context *
 {
     const char * value;
 
-#define IF_ERR(op) \
-if ((value = cag_option_get_value(cag_context))) \
-    { op; return ParsedOK; } \
+#define IF_ERR(op)                                          \
+if ((value = cag_option_get_value(cag_context)))            \
+    { op; return ParsedOK; }                                \
 else return ParseError;
 
     switch (identifier) {
@@ -117,3 +118,14 @@ else return ParseError;
 
 #undef IF_ERR
 }
+
+#define PARS_OPTIONS(parser, state)                         \
+do {                                                        \
+if (state == NotParsed)                                     \
+    state = parser;                                         \
+if (state == ParseError) {                                  \
+    fprintf(stderr, "Parse error\n");                       \
+    identifier = 'h';                                       \
+    state = ParsedOK;                                       \
+}                                                           \
+} while (0)

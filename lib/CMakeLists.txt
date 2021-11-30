@@ -6,6 +6,7 @@ foreach(UTIL_LIB_NAME IN ITEMS Utils UtilsCpp)
     set(UTIL_LIB_SOURCES src/Utils/Utils.c)
     set(UTIL_LIB_DEPS
       OpenCL::Headers
+      $<$<BOOL:${HAVE_LIB_M}>:m>
     )
     set(UTIL_CL_VERSION_MACRO_NAME CL_TARGET_OPENCL_VERSION)
   elseif(UTIL_LIB_NAME STREQUAL UtilsCpp)
@@ -50,7 +51,6 @@ foreach(UTIL_LIB_NAME IN ITEMS Utils UtilsCpp)
       OpenCL::OpenCL
     PRIVATE
       cargs
-      stb
   )
   target_compile_definitions(${UTIL_LIB_TARGET}
     PRIVATE
@@ -157,6 +157,8 @@ foreach(SDK_LIB_NAME IN ITEMS SDK SDKCpp)
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
       $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
       $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+      ${Stb_INCLUDE_DIR}
   )
   target_link_libraries(${SDK_LIB_TARGET}
     PUBLIC
@@ -164,7 +166,6 @@ foreach(SDK_LIB_NAME IN ITEMS SDK SDKCpp)
       OpenCL::OpenCL
     PRIVATE
       cargs
-      stb
   )
   target_compile_definitions(${SDK_LIB_TARGET}
     PRIVATE

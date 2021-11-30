@@ -39,14 +39,16 @@ struct ReduceOptions {
     std::string op;
 };
 
+std::unique_ptr<TCLAP::ValuesConstraint<std::string>> valid_op_constraint;
+
 // Add option to CLI parsing SDK utility
 template <> auto cl::sdk::parse<ReduceOptions>(){
     std::vector<std::string> valid_op_strings{ "min", "sum" };
-    TCLAP::ValuesConstraint<std::string> valid_op_constraint{ valid_op_strings };
+    valid_op_constraint = std::make_unique<TCLAP::ValuesConstraint<std::string>>( valid_op_strings );
 
     return std::make_tuple(
         std::make_shared<TCLAP::ValueArg<size_t>>("l", "length", "Length of input", false, 1'048'576, "positive integral"),
-        std::make_shared<TCLAP::ValueArg<std::string>>("o", "op", "Operation to perform", false, "min", &valid_op_constraint)
+        std::make_shared<TCLAP::ValueArg<std::string>>("o", "op", "Operation to perform", false, "min", valid_op_constraint.get())
     );
 }
 template <> ReduceOptions cl::sdk::comprehend<ReduceOptions>(

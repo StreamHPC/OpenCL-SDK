@@ -1,6 +1,7 @@
 #pragma once
 
 // OpenCL SDK includes
+#include "OpenCLSDKCpp_Export.h"
 #include <CL/SDK/Options.hpp>
 
 // OpenCL Utils includes
@@ -78,16 +79,18 @@ cl::sdk::options::Diagnostic cl::sdk::comprehend<cl::sdk::options::Diagnostic>(
     };
 }
 
+SDKCPP_EXPORT extern std::unique_ptr<TCLAP::ValuesConstraint<std::string>> valid_dev_constraint;
+
 template <>
 auto cl::sdk::parse<cl::sdk::options::SingleDevice>()
 {
     std::vector<std::string> valid_dev_strings{ "all", "cpu", "gpu", "acc", "cus", "def" };
-    TCLAP::ValuesConstraint<std::string> valid_dev_constraint{ valid_dev_strings };
+    valid_dev_constraint = std::make_unique<TCLAP::ValuesConstraint<std::string>>( valid_dev_strings );
 
     return std::make_tuple(
         std::make_shared<TCLAP::ValueArg<unsigned int>>("p", "platform", "Index of platform to use", false, 0, "positive integral"),
         std::make_shared<TCLAP::ValueArg<unsigned int>>("d", "device", "Index of device to use", false, 0, "positive integral"),
-        std::make_shared<TCLAP::ValueArg<std::string>>( "t", "type","Type of device to use", false, "def", &valid_dev_constraint)
+        std::make_shared<TCLAP::ValueArg<std::string>>( "t", "type","Type of device to use", false, "def", valid_dev_constraint.get())
     );
 }
 template <>

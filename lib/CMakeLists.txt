@@ -105,7 +105,6 @@ foreach(SDK_LIB_NAME IN ITEMS SDK SDKCpp)
       OpenCL::Headers
       OpenCL::Utils
       cargs
-      stb
     )
     set(SDK_CL_VERSION_MACRO_NAME CL_TARGET_OPENCL_VERSION)
   elseif(SDK_LIB_NAME STREQUAL SDKCpp)
@@ -125,6 +124,7 @@ foreach(SDK_LIB_NAME IN ITEMS SDK SDKCpp)
     )
       set(SDK_LIB_INCLUDES
         ${TCLAP_INCLUDE_DIR}
+        ${Stb_INCLUDE_DIR}
       )
       if(CMAKE_VERSION VERSION_LESS 3.4)
         list(APPEND SDK_LIB_DEPS ${OPENGL_LIBRARIES})

@@ -54,8 +54,8 @@ class NBody : public cl::sdk::InteropWindow
 {
 public:
     explicit NBody(
-        int platform_id = 0,
-        int device_id = 0,
+        unsigned int platform_id = 0,
+        unsigned int device_id = 0,
         cl_bitfield device_type = CL_DEVICE_TYPE_DEFAULT
     )
         : InteropWindow{

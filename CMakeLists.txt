@@ -42,12 +42,11 @@ add_subdirectory(external/OpenCL-Headers)
 add_subdirectory(external/OpenCL-ICD-Loader)
 add_subdirectory(external/OpenCL-CLHPP)
 
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Modules)
 add_subdirectory(third_party/cargs)
-add_subdirectory(third_party/stb)
 find_package(TCLAP REQUIRED)
 find_package(Stb REQUIRED)
 if(OPENCL_SDK_BUILD_OPENGL_SAMPLES)
-  list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Modules)
   cmake_minimum_required(VERSION 3.10) # SFML 2 won't find Freetype::Freetype under 3.10
   find_package(OpenGL REQUIRED)
   if(CMAKE_SYSTEM_NAME MATCHES Linux) # TODO: Add EGL support

@@ -37,7 +37,7 @@ CHECK_LIBRARY_EXISTS(m sin "" HAVE_LIB_M)
 macro(add_sample)
     set(options TEST)
     set(one_value_args TARGET VERSION CATEGORY)
-    set(multi_value_args SOURCES KERNELS INCLUDES LIBS)
+    set(multi_value_args SOURCES KERNELS SHADERS INCLUDES LIBS)
     cmake_parse_arguments(OPENCL_SAMPLE
         "${options}" "${one_value_args}" "${multi_value_args}"
         ${ARGN}
@@ -84,8 +84,9 @@ macro(add_sample)
     )
 
     foreach(CONFIG ${OPENCL_SAMPLE_CONFIGS})
-        install(TARGETS ${OPENCL_SAMPLE_TARGET} CONFIGURATIONS ${CONFIG} DESTINATION ${CONFIG})
-        install(FILES ${OPENCL_SAMPLE_KERNELS} CONFIGURATIONS ${CONFIG} DESTINATION ${CONFIG})
+        install(TARGETS ${OPENCL_SAMPLE_TARGET} CONFIGURATIONS ${CONFIG} DESTINATION ${CMAKE_INSTALL_BINDIR})
+        install(FILES ${OPENCL_SAMPLE_KERNELS} CONFIGURATIONS ${CONFIG} DESTINATION ${CMAKE_INSTALL_BINDIR})
+        install(FILES ${OPENCL_SAMPLE_SHADERS} CONFIGURATIONS ${CONFIG} DESTINATION ${CMAKE_INSTALL_BINDIR})
     endforeach()
     if(OPENCL_SDK_TEST_SAMPLES AND OPENCL_SAMPLE_TEST)
         add_test(

@@ -16,4 +16,9 @@ add_sample(
     TEST
     TARGET nbodycpp
     VERSION 120
-    SOURCES main.cpp)
+    SOURCES main.cpp
+    KERNELS nbody.cl
+    SHADERS
+        nbody.vert.glsl
+        nbody.frag.glsl
+    )

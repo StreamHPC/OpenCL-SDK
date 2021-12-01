@@ -125,6 +125,7 @@ if(OPENCL_SDK_BUILD_SAMPLES)
         $<$<BOOL:${OPENCL_SDK_BUILD_OPENGL_SAMPLES}>:OpenGL::GL>
         $<$<BOOL:${OPENCL_SDK_BUILD_OPENGL_SAMPLES}>:GLEW::GLEW>
         $<$<AND:$<BOOL:${OPENCL_SDK_BUILD_OPENGL_SAMPLES}>,$<PLATFORM_ID:Linux>>:OpenGL::GLU>
+        $<$<BOOL:${OPENCL_SDK_BUILD_OPENGL_SAMPLES}>:sfml-system>
         $<$<BOOL:${OPENCL_SDK_BUILD_OPENGL_SAMPLES}>:sfml-window>
         $<$<BOOL:${OPENCL_SDK_BUILD_OPENGL_SAMPLES}>:sfml-graphics>
       )
@@ -176,5 +177,19 @@ if(OPENCL_SDK_BUILD_SAMPLES)
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}
         FOLDER "Libraries/${SDK_LIB_NAME}"
     )
+    install(
+      TARGETS ${SDK_LIB_TARGET}
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+    if(OPENCL_SDK_BUILD_OPENGL_SAMPLES AND CMAKE_VERSION VERSION_GREATER_EQUAL 3.21)
+      install(
+        IMPORTED_RUNTIME_ARTIFACTS
+          GLEW::GLEW
+          sfml-window
+          sfml-graphics
+          sfml-system
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      )
+    endif()
   endforeach()
 endif(OPENCL_SDK_BUILD_SAMPLES)

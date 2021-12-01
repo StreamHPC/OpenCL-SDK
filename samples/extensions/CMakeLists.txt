@@ -13,7 +13,3 @@
 # limitations under the License.
 
 add_subdirectory(khr)
-if(OPENCL_SDK_BUILD_OPENGL_SAMPLES)
-  add_subdirectory(khr/conway)
-  add_subdirectory(khr/nbody)
-endif()

@@ -121,6 +121,7 @@ foreach(SDK_LIB_NAME IN ITEMS SDK SDKCpp)
     set(SDK_CL_VERSION_MACRO_NAME CL_TARGET_OPENCL_VERSION)
   elseif(SDK_LIB_NAME STREQUAL SDKCpp)
     set(SDK_LIB_SOURCES
+      src/SDK/CLI.cpp
       src/SDK/Image.cpp
       src/SDK/InteropContext.cpp
       src/SDK/InteropWindow.cpp

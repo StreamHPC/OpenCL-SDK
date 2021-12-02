@@ -10,7 +10,7 @@ The most important aspect of this sample is to understand how OpenCL-OpenGL inte
 
 ### Application flow
 
-Application flow is primarily dictated by `cl::util::InteropWindow`, more specifically by `cl::util::InteropWindow::run()`. For a deatiled overview of what the `InteropWindow` utility does, please refer to the [Utils documentation](../../../../lib/Utils.md).
+Application flow is primarily dictated by `cl::sdk::InteropWindow`, more specifically by `cl::ask::InteropWindow::run()`. For a deatiled overview of what the `InteropWindow` utility does, please refer to the [SDK library documentation](../../../../lib/SDK.md).
 
 ### Double buffering
 
@@ -23,13 +23,17 @@ This sample uses basic and implicit interop context synchronization.For a detail
 ### Used API surface
 
 ```c++
-cl::util::get_context(cl::util::Triplet)
+cl::sdk::InteropWindow
 cl::Context::getInfo<CL_CONTEXT_DEVICES>()
 cl::CommandQueue(cl::Context, cl::Device)
-cl::Device::getInfo<CL_DEVICE_PLATFORM>()
 cl::util::get_program(cl::Context, cl::string)
+cl::Program::build(cl::Device)
 cl::KernelFunctor<...>(cl::Program, const char*)
-cl::sdk::fill_with_random(...)
 cl::Buffer(cl::CommandQueue, Iter, Iter, bool)
+cl::BufferGL::BufferGL(cl::Context, cl_mem_flags, cl_GLuint)
 cl::copy(cl::CommandQueue, cl::Buffer, Iter, Iter)
+cl::CommandQueue::enqueueAcquireGLObjects(const cl::vector<cl::Memory>*, const cl::vector<cl::Event>*, cl::Event*)
+cl::CommandQueue::enqueueReleaseGLObjects(const cl::vector<cl::Memory>*, const cl::vector<cl::Event>*, cl::Event*)
+cl::finish()
+cl::Event::wait()
 ```

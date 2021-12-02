@@ -43,7 +43,4 @@ kernel void nbody(global const float4* pos_mass_front,
     // write to global memory
     pos_mass_back[gid] = (float4)(my_pos, my_mass);
     velocity[gid] = (float4)(my_vel, 0.f);
-/*
-    size_t gid = get_global_id(0);
-    pos_mass_back[gid] = pos_mass_front[gid] + (float4)(0.1f, 0.f, 0.f, 0.f);*/
 }

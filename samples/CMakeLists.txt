@@ -17,6 +17,7 @@ if(CMAKE_CONFIGURATION_TYPES)
 else()
     set(OPENCL_SAMPLE_CONFIGS ${CMAKE_BUILD_TYPE})
 endif()
+list(APPEND CMAKE_INSTALL_RPATH "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}")
 
 # add math library to link if needed
 # method by Michael Ambrus, https://stackoverflow.com/questions/34625627

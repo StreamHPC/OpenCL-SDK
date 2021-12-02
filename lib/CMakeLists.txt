@@ -180,16 +180,30 @@ if(OPENCL_SDK_BUILD_SAMPLES)
     install(
       TARGETS ${SDK_LIB_TARGET}
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
-    if(OPENCL_SDK_BUILD_OPENGL_SAMPLES AND CMAKE_VERSION VERSION_GREATER_EQUAL 3.21)
-      install(
-        IMPORTED_RUNTIME_ARTIFACTS
-          GLEW::GLEW
-          sfml-window
-          sfml-graphics
-          sfml-system
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    # Copying DLLs the samples depend on only makes sense on Wnidows. On *nix
+    # OSes we rely on RPATH. We can only do this with sufficiently new CMake.
+    if(
+      OPENCL_SDK_BUILD_OPENGL_SAMPLES AND
+      CMAKE_VERSION VERSION_GREATER_EQUAL 3.21 AND
+      CMAKE_SYSTEM_NAME MATCHES Windows
+    )
+      foreach(DEP IN ITEMS
+        GLEW::GLEW
+        sfml-window
+        sfml-graphics
+        sfml-system
       )
+        get_target_property(DEP_TYPE ${DEP} TYPE)
+        if(${DEP_TYPE} STREQUAL SHARED_LIBRARY)
+          install(
+            IMPORTED_RUNTIME_ARTIFACTS
+              ${DEP}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+          )
+        endif()
+      endforeach()
     endif()
   endforeach()
 endif(OPENCL_SDK_BUILD_SAMPLES)

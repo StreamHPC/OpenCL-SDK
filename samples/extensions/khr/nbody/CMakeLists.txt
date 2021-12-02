@@ -13,7 +13,6 @@
 # limitations under the License.
 
 add_sample(
-    TEST
     TARGET nbodycpp
     VERSION 120
     SOURCES main.cpp

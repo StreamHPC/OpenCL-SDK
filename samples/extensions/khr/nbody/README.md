@@ -10,15 +10,15 @@ The most important aspect of this sample is to understand how OpenCL-OpenGL inte
 
 ### Application flow
 
-Application flow is primarily dictated by `cl::sdk::InteropWindow`, more specifically by `cl::ask::InteropWindow::run()`. For a deatiled overview of what the `InteropWindow` utility does, please refer to the [SDK library documentation](../../../../lib/SDK.md).
+Application flow is primarily dictated by `cl::sdk::InteropWindow`, more specifically by `cl::ask::InteropWindow::run()`. For a detailed overview of what the `InteropWindow` utility does, please refer to the [SDK library documentation](../../../../lib/SDK.md).
 
 ### Double buffering
 
-The kernel used to implement the gravitational interaction and time-stepping in a fused manner uses double-buffering of some of the data. Because it is not possible 
+The kernel used to implement the gravitational interaction and time-stepping in a fused manner uses double-buffering of some of the data. It is not possible to calculate forces between the particles and carry out the forward-Euler in the same kernel without global syncing. (Some praticles may have already updated their position while others are still summing up forces, using the now out-of-sync positions.)
 
 ### Implicit interop context synchronization
 
-This sample uses basic and implicit interop context synchronization.For a detailed overview on the various ways OpenCL and OpenGL can be synchronized, refer to [Synchronizing the two APIs](https://github.com/KhronosGroup/OpenCL-Guide/blob/main/chapters/how_does_opencl-opencl_interop.md#Synchronizing-the-two-APIs) section of the OpenCL-OpenGL interop guide.
+This sample uses basic and implicit interop context synchronization. For a detailed overview on the various ways OpenCL and OpenGL can be synchronized, refer to [Synchronizing the two APIs](https://github.com/KhronosGroup/OpenCL-Guide/blob/main/chapters/how_does_opencl-opencl_interop.md#Synchronizing-the-two-APIs) section of the OpenCL-OpenGL interop guide.
 
 ### Used API surface
 

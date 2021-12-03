@@ -13,8 +13,11 @@
 # limitations under the License.
 
 add_sample(
-    TEST
-    TARGET binaries
-    VERSION 300
-    SOURCES main.c
-    KERNELS Collatz.cl)
+    TARGET nbodycpp
+    VERSION 120
+    SOURCES main.cpp
+    KERNELS nbody.cl
+    SHADERS
+        nbody.vert.glsl
+        nbody.frag.glsl
+    )

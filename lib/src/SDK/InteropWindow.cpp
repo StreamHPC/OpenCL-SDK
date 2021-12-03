@@ -33,15 +33,15 @@ void cl::sdk::InteropWindow::run()
 
     while(isOpen())
     {
-        sf::Event ev;
-        while (pollEvent(ev))
-            event(ev);
-
         render();
 
         display();
 
         updateScene();
+
+        sf::Event ev;
+        while (pollEvent(ev))
+            event(ev);
     }
 
     setActive(false);

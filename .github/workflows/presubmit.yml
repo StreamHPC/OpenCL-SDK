@@ -46,7 +46,7 @@ jobs:
               CXX=clang++
             fi
             cmake -D CMAKE_C_COMPILER=$CC -D CMAKE_CXX_COMPILER=$CXX $TOOLCHAIN_ARG -S . -B build
-            cmake --build .\build --verbose --parallel 2
+            cmake --build ./build --verbose --parallel 2
   buildwin:
     needs: format
     name: Build Windows
@@ -62,7 +62,7 @@ jobs:
           .\vcpkg\bootstrap-vcpkg.bat
           .\vcpkg\vcpkg.exe --triplet=x64-windows install sfml tclap glm glew stb
           cmake -D CMAKE_TOOLCHAIN_FILE=.\vcpkg\scripts\buildsystems\vcpkg.cmake -S . -B build
-          cmake --build .\build -- /verbosity:minimal /maxCpuCount /noLogo
+          cmake --build ./build -- /verbosity:minimal /maxCpuCount /noLogo
 
   python:
     name: Exercise Python examples on ${{matrix.os}}

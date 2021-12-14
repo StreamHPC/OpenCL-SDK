@@ -15,6 +15,7 @@ find_path (Stb_INCLUDE_PATH stb_image.h
     ${Stb_DIR}
   PATH_SUFFIXES
     include
+    include/stb
   )
 
 # handle the QUIETLY and REQUIRED arguments and set Stb_FOUND to

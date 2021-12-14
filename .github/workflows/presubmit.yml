@@ -34,9 +34,9 @@ jobs:
             elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
               brew install tclap glm glew sfml mesa-glu
               git clone https://github.com/Microsoft/vcpkg.git
-              .\vcpkg\bootstrap-vcpkg.sh
-              .\vcpkg\vcpkg install stb
-              TOOLCHAIN_ARG="-D CMAKE_TOOLCHAIN_FILE=.\vcpkg\scripts\buildsystems\vcpkg.cmake"
+              ./vcpkg/bootstrap-vcpkg.sh
+              ./vcpkg/vcpkg install stb
+              TOOLCHAIN_ARG="-D CMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake"
             fi
             if [[ "${{ matrix.compiler }}" == "gcc" ]]; then
               CC=gcc

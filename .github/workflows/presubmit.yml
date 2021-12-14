@@ -29,6 +29,7 @@ jobs:
       - name: Build
         run: |
             if [[ "${{ matrix.os }}" == "ubuntu-20.04" ]]; then
+              sudo apt update
               sudo apt install -y libtclap-dev libglm-dev libglew-dev libsfml-dev libidn11 libx11-dev libxrandr-dev libxi-dev mesa-common-dev libgl1-mesa-dev libglu1-mesa-dev libudev-dev
             elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
               brew install tclap glm glew sfml mesa-glu

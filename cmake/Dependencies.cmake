@@ -5,6 +5,11 @@ if(OPENCL_SDK_BUILD_SAMPLES)
   endforeach()
 
   if(OPENCL_SDK_BUILD_OPENGL_SAMPLES)
+    foreach(DEP IN ITEMS glm)
+      list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/Dependencies/${DEP}")
+      include(${DEP})
+    endforeach()
+
     cmake_minimum_required(VERSION 3.10) # SFML 2 won't find Freetype::Freetype under 3.10
     find_package(OpenGL REQUIRED)
     if(CMAKE_SYSTEM_NAME MATCHES Linux) # TODO: Add EGL support
@@ -21,6 +26,5 @@ if(OPENCL_SDK_BUILD_SAMPLES)
       COMPONENTS window graphics
     )
     find_package(GLEW REQUIRED)
-    find_package(glm CONFIG REQUIRED)
   endif(OPENCL_SDK_BUILD_OPENGL_SAMPLES)
 endif(OPENCL_SDK_BUILD_SAMPLES)

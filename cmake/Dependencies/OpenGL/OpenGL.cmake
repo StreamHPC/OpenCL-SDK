@@ -1,6 +1,4 @@
-if(NOT DEPENDENCIES_FORCE_DOWNLOAD)
-  find_package(OpenGL)
-endif()
+find_package(OpenGL)
 
 if(NOT OpenGL_FOUND)
   if(WIN32)

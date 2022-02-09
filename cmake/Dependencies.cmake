@@ -25,6 +25,5 @@ if(OPENCL_SDK_BUILD_SAMPLES)
       REQUIRED
       COMPONENTS window graphics
     )
-    find_package(GLEW REQUIRED)
   endif(OPENCL_SDK_BUILD_OPENGL_SAMPLES)
 endif(OPENCL_SDK_BUILD_SAMPLES)

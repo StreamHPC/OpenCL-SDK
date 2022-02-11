@@ -200,13 +200,15 @@ if(OPENCL_SDK_BUILD_SAMPLES)
         sfml-graphics
         sfml-system
       )
-        get_target_property(DEP_TYPE ${DEP} TYPE)
-        if(${DEP_TYPE} STREQUAL SHARED_LIBRARY)
-          install(
-            IMPORTED_RUNTIME_ARTIFACTS
-              ${DEP}
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-          )
+        if(TARGET ${DEP})
+          get_target_property(DEP_TYPE ${DEP} TYPE)
+          if(${DEP_TYPE} STREQUAL SHARED_LIBRARY)
+            install(
+              IMPORTED_RUNTIME_ARTIFACTS
+                ${DEP}
+              RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            )
+          endif()
         endif()
       endforeach()
     endif()

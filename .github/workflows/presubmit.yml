@@ -15,7 +15,7 @@ jobs:
         run: ./scripts/check-format.sh
   build:
     needs: format
-    name: Build ${{ matrix.os }} ${{ matrix.compiler }}
+    name: Build ${{ matrix.os }} ${{ matrix.compiler }} ${{ matrix.deps }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -79,7 +79,7 @@ jobs:
       - name: Build
         shell: pwsh
         run: |
-          if ('${{ matrix.deps }}' == 'vcpkg') {
+          if ('${{ matrix.deps }}' -eq 'vcpkg') {
             git clone https://github.com/Microsoft/vcpkg.git
             .\vcpkg\bootstrap-vcpkg.bat
             .\vcpkg\vcpkg.exe --triplet=x64-windows install sfml tclap glm glew stb

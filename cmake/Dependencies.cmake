@@ -5,7 +5,7 @@ if(OPENCL_SDK_BUILD_SAMPLES)
   endforeach()
 
   if(OPENCL_SDK_BUILD_OPENGL_SAMPLES)
-    foreach(DEP IN ITEMS X11 glm OpenGL GLEW SFML)
+    foreach(DEP IN ITEMS X11 glm OpenGL GLEW Freetype SFML)
       list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/Dependencies/${DEP}")
       include(${DEP})
     endforeach()

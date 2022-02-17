@@ -41,6 +41,9 @@ jobs:
               else
                 TOOLCHAIN_ARG=""
               fi
+              if [[ "${{matrix.deps}}" == "fetch" ]]; then
+                sudo apt remove -y libtclap-dev libglm-dev libglew-dev libsfml-dev libstb-dev libfreetype6-dev
+              fi
             elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
               brew install tclap glm glew sfml mesa-glu
               git clone https://github.com/Microsoft/vcpkg.git

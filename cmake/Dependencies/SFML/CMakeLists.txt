@@ -134,8 +134,14 @@ if(SFML_OS_ANDROID)
     target_link_libraries(sfml-graphics PRIVATE z EGL GLESv1_CM)
 endif()
 
-target_link_libraries(sfml-graphics PRIVATE freetype)
-install(TARGETS freetype EXPORT SFMLConfigExport)
+target_link_libraries(sfml-graphics
+    PRIVATE
+        $<$<TARGET_EXISTS:Freetype::Freetype>:Freetype::Freetype>
+        $<$<NOT:$<TARGET_EXISTS:Freetype::Freetype>>:freetype>
+)
+if(TARGET freetype)
+    install(TARGETS freetype EXPORT SFMLConfigExport)
+endif()
 
 # add preprocessor symbols
 target_compile_definitions(sfml-graphics PRIVATE "STBI_FAILURE_USERMSG")

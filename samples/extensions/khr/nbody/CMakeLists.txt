@@ -20,6 +20,6 @@ add_sample(
     SHADERS
         nbody.vert.glsl
         nbody.frag.glsl
-    LIBS
-        glm::glm
+    INCLUDES
+        "${GLM_INCLUDE_DIRS}"
     )

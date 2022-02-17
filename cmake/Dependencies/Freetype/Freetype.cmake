@@ -18,7 +18,6 @@ if(NOT (Freetype_FOUND OR TARGET freetype))
     freetype-external
     GIT_REPOSITORY      https://github.com/freetype/freetype.git
     GIT_TAG             VER-2-11-1 # 3f83daeecb1a78d851b660eed025eeba362c0e4a
-    
   )
   FetchContent_MakeAvailable(freetype-external)
   set_target_properties(freetype

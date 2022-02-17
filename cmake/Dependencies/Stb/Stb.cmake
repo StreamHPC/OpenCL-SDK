@@ -18,10 +18,6 @@ if(NOT Stb_FOUND)
     GIT_TAG             af1a5bc352164740c1cc1354942b1c6b72eacb8a
     UPDATE_COMMAND      ""
     PATCH_COMMAND       ""
-    CONFIGURE_COMMAND   ""
-    BUILD_COMMAND       ""
-    INSTALL_COMMAND     ""
-    TEST_COMMAND        ""
   )
   FetchContent_MakeAvailable(stb-external)
   list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_BINARY_DIR}/_deps/stb-external-src")

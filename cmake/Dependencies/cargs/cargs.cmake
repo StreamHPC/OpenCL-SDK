@@ -22,6 +22,7 @@ if(NOT (cargs_FOUND OR TARGET cargs))
   FetchContent_MakeAvailable(cargs-external)
   set_target_properties(cargs
     PROPERTIES
+      POSITION_INDEPENDENT_CODE ON
       RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}"
       INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
       FOLDER "Dependencies"

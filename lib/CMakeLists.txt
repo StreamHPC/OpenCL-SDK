@@ -105,7 +105,12 @@ endforeach()
 if(OPENCL_SDK_BUILD_SAMPLES)
   foreach(SDK_LIB_NAME IN ITEMS SDK SDKCpp)
     if(SDK_LIB_NAME STREQUAL SDK)
-      set(SDK_LIB_SOURCES src/SDK/SDK.c)
+      set(SDK_LIB_SOURCES
+        src/SDK/CLI.c
+        src/SDK/Context.c
+        src/SDK/Image.c
+        src/SDK/Random.c
+      )
       set(SDK_LIB_DEPS
         OpenCL::Headers
         OpenCL::Utils

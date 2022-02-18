@@ -62,10 +62,8 @@ namespace util {
 #endif
 
     namespace detail {
-        UTILSCPP_EXPORT cl_int errHandler(
-            cl_int err,
-            cl_int* errPtr,
-            const char* errStr = nullptr);
+        UTILSCPP_EXPORT cl_int errHandler(cl_int err, cl_int* errPtr,
+                                          const char* errStr = nullptr);
     }
 
 }

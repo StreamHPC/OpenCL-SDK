@@ -57,7 +57,8 @@ namespace sdk {
 
 // SDK built-in CLI parsers
 
-template <> auto cl::sdk::parse<cl::sdk::options::Diagnostic>()
+template <>
+inline auto cl::sdk::parse<cl::sdk::options::Diagnostic>()
 {
     return std::make_tuple(
         std::make_shared<TCLAP::SwitchArg>("v", "verbose",
@@ -66,7 +67,7 @@ template <> auto cl::sdk::parse<cl::sdk::options::Diagnostic>()
                                            "Suppress standard output", false));
 }
 template <>
-cl::sdk::options::Diagnostic cl::sdk::comprehend<cl::sdk::options::Diagnostic>(
+inline cl::sdk::options::Diagnostic cl::sdk::comprehend<cl::sdk::options::Diagnostic>(
     std::shared_ptr<TCLAP::SwitchArg> verbose_arg,
     std::shared_ptr<TCLAP::SwitchArg> quiet_arg)
 {
@@ -77,7 +78,8 @@ cl::sdk::options::Diagnostic cl::sdk::comprehend<cl::sdk::options::Diagnostic>(
 SDKCPP_EXPORT extern std::unique_ptr<TCLAP::ValuesConstraint<std::string>>
     valid_dev_constraint;
 
-template <> auto cl::sdk::parse<cl::sdk::options::SingleDevice>()
+template <>
+inline auto cl::sdk::parse<cl::sdk::options::SingleDevice>()
 {
     std::vector<std::string> valid_dev_strings{ "all", "cpu", "gpu",
                                                 "acc", "cus", "def" };
@@ -96,8 +98,8 @@ template <> auto cl::sdk::parse<cl::sdk::options::SingleDevice>()
                                "def", valid_dev_constraint.get()));
 }
 template <>
-cl::sdk::options::SingleDevice
-cl::sdk::comprehend<cl::sdk::options::SingleDevice>(
+inline
+cl::sdk::options::SingleDevice cl::sdk::comprehend<cl::sdk::options::SingleDevice>(
     std::shared_ptr<TCLAP::ValueArg<unsigned int>> platform_arg,
     std::shared_ptr<TCLAP::ValueArg<unsigned int>> device_arg,
     std::shared_ptr<TCLAP::ValueArg<std::string>> type_arg)
@@ -126,7 +128,8 @@ cl::sdk::comprehend<cl::sdk::options::SingleDevice>(
                                   device_type(type_arg->getValue()) };
 }
 
-template <> auto cl::sdk::parse<cl::sdk::options::Window>()
+template <>
+inline auto cl::sdk::parse<cl::sdk::options::Window>()
 {
     return std::make_tuple(
         std::make_shared<TCLAP::ValueArg<int>>("x", "width", "Width of window",
@@ -137,7 +140,7 @@ template <> auto cl::sdk::parse<cl::sdk::options::Window>()
                                            "Fullscreen window", false));
 }
 template <>
-cl::sdk::options::Window cl::sdk::comprehend<cl::sdk::options::Window>(
+inline cl::sdk::options::Window cl::sdk::comprehend<cl::sdk::options::Window>(
     std::shared_ptr<TCLAP::ValueArg<int>> width_arg,
     std::shared_ptr<TCLAP::ValueArg<int>> height_arg,
     std::shared_ptr<TCLAP::SwitchArg> fullscreen_arg)

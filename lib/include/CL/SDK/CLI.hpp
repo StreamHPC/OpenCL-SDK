@@ -49,8 +49,7 @@ namespace sdk {
 
         return util::detail::transform_tuple(parsers, [](auto&& parser) {
             return detail::comprehend_helper<
-                std::remove_reference_t<decltype(parser.first)>>(
-                    parser.second);
+                std::remove_reference_t<decltype(parser.first)>>(parser.second);
         });
     }
 }
@@ -61,16 +60,13 @@ namespace sdk {
 namespace cl {
 namespace sdk {
 
-    template <>
-    inline auto parse<options::Diagnostic>()
+    template <> inline auto parse<options::Diagnostic>()
     {
         return std::make_tuple(
             std::make_shared<TCLAP::SwitchArg>(
-                "v", "verbose",
-                "Extra informational output", false),
+                "v", "verbose", "Extra informational output", false),
             std::make_shared<TCLAP::SwitchArg>(
-                "q", "quiet",
-                "Suppress standard output", false));
+                "q", "quiet", "Suppress standard output", false));
     }
     template <>
     inline options::Diagnostic comprehend<options::Diagnostic>(
@@ -84,8 +80,7 @@ namespace sdk {
     SDKCPP_EXPORT extern std::unique_ptr<TCLAP::ValuesConstraint<std::string>>
         valid_dev_constraint;
 
-    template <>
-    inline auto parse<options::SingleDevice>()
+    template <> inline auto parse<options::SingleDevice>()
     {
         std::vector<std::string> valid_dev_strings{ "all", "cpu", "gpu",
                                                     "acc", "cus", "def" };
@@ -93,21 +88,18 @@ namespace sdk {
             std::make_unique<TCLAP::ValuesConstraint<std::string>>(
                 valid_dev_strings);
 
-        return std::make_tuple(
-            std::make_shared<TCLAP::ValueArg<unsigned int>>(
-                "p", "platform", "Index of platform to use",
-                false, 0, "positive integral"),
-            std::make_shared<TCLAP::ValueArg<unsigned int>>(
-                "d", "device", "Index of device to use", false,
-                0, "positive integral"),
-            std::make_shared<TCLAP::ValueArg<std::string>>(
-                "t", "type", "Type of device to use", false,
-                "def", valid_dev_constraint.get())
-        );
+        return std::make_tuple(std::make_shared<TCLAP::ValueArg<unsigned int>>(
+                                   "p", "platform", "Index of platform to use",
+                                   false, 0, "positive integral"),
+                               std::make_shared<TCLAP::ValueArg<unsigned int>>(
+                                   "d", "device", "Index of device to use",
+                                   false, 0, "positive integral"),
+                               std::make_shared<TCLAP::ValueArg<std::string>>(
+                                   "t", "type", "Type of device to use", false,
+                                   "def", valid_dev_constraint.get()));
     }
     template <>
-    inline
-    options::SingleDevice comprehend<options::SingleDevice>(
+    inline options::SingleDevice comprehend<options::SingleDevice>(
         std::shared_ptr<TCLAP::ValueArg<unsigned int>> platform_arg,
         std::shared_ptr<TCLAP::ValueArg<unsigned int>> device_arg,
         std::shared_ptr<TCLAP::ValueArg<std::string>> type_arg)
@@ -126,9 +118,7 @@ namespace sdk {
             else if (in == "def")
                 return CL_DEVICE_TYPE_DEFAULT;
             else
-                throw std::logic_error{
-                    "Unkown device type after cli parse."
-                };
+                throw std::logic_error{ "Unkown device type after cli parse." };
         };
 
         return options::SingleDevice{ platform_arg->getValue(),
@@ -136,20 +126,17 @@ namespace sdk {
                                       device_type(type_arg->getValue()) };
     }
 
-    template <>
-    inline auto parse<options::Window>()
+    template <> inline auto parse<options::Window>()
     {
         return std::make_tuple(
-            std::make_shared<TCLAP::ValueArg<int>>(
-                "x", "width", "Width of window",
-                false, 800, "positive integral"),
-            std::make_shared<TCLAP::ValueArg<int>>(
-                "y", "height", "Height of window",
-                false, 800, "positive integral"),
-            std::make_shared<TCLAP::SwitchArg>(
-                "f", "fullscreen",
-                "Fullscreen window", false)
-        );
+            std::make_shared<TCLAP::ValueArg<int>>("x", "width",
+                                                   "Width of window", false,
+                                                   800, "positive integral"),
+            std::make_shared<TCLAP::ValueArg<int>>("y", "height",
+                                                   "Height of window", false,
+                                                   800, "positive integral"),
+            std::make_shared<TCLAP::SwitchArg>("f", "fullscreen",
+                                               "Fullscreen window", false));
     }
     template <>
     inline options::Window comprehend<options::Window>(

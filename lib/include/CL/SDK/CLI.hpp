@@ -57,6 +57,9 @@ namespace sdk {
 
 // SDK built-in CLI parsers
 
+SDKCPP_EXPORT extern std::unique_ptr<TCLAP::ValuesConstraint<std::string>>
+    valid_dev_constraint;
+
 namespace cl {
 namespace sdk {
 
@@ -76,9 +79,6 @@ namespace sdk {
         return options::Diagnostic{ verbose_arg->getValue(),
                                     quiet_arg->getValue() };
     }
-
-    SDKCPP_EXPORT extern std::unique_ptr<TCLAP::ValuesConstraint<std::string>>
-        valid_dev_constraint;
 
     template <> inline auto parse<options::SingleDevice>()
     {

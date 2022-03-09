@@ -12,7 +12,7 @@ jobs:
       matrix:
         VER: [v143]
         GEN: [Visual Studio 17 2022]
-        BIN: [x64, x86]
+        BIN: [amd64, x86]
 
     steps:
     - name: Checkout OpenCL-SDK
@@ -44,7 +44,8 @@ jobs:
           -D BUILD_TESTING=OFF `
           -D BUILD_TESTS=OFF `
           -D OPENCL_SDK_BUILD_SAMPLES=OFF `
-          -D OPENCL_ICD_LOADER_BUILD_TESTING=OFF
+          -D OPENCL_ICD_LOADER_BUILD_TESTING=OFF `
+          -D CPACK_PACKAGE_FILE_NAME=OpenCL-SDK-${{github.ref_name}}-Windows-${{matrix.BIN}} `
 
     - name: Build
       shell: pwsh
@@ -68,13 +69,11 @@ jobs:
     - name: Package Binary
       shell: pwsh
       run: |
-        $BIN = if('${{matrix.BIN}}' -eq 'x86') {'win32'} else {'win64'}
         & cpack `
           --config "${env:GITHUB_WORKSPACE}\build\CPackConfig.cmake" `
           -G ZIP `
           -C Release `
-          -B "${env:GITHUB_WORKSPACE}\package" `
-        Rename-Item "${env:GITHUB_WORKSPACE}\package\OpenCL-SDK-${{github.ref_name}}-${BIN}.zip" "OpenCL-SDK-${{github.ref_name}}-Win-${{matrix.BIN}}.zip"
+          -B "${env:GITHUB_WORKSPACE}\package"
 
     - name: Release Binary
       uses: softprops/action-gh-release@v1
@@ -82,7 +81,7 @@ jobs:
       with:
         draft: true
         files: |
-          package/OpenCL-SDK-${{github.ref_name}}-Win-${{matrix.BIN}}.zip
+          package/OpenCL-SDK-${{github.ref_name}}-Windows-${{matrix.BIN}}.*
 
   source:
     name: Source Release (${{ matrix.os }})
@@ -106,12 +105,13 @@ jobs:
       run: |
         & cmake `
           -S "${env:GITHUB_WORKSPACE}" `
-          -B "${env:GITHUB_WORKSPACE}\build" `
+          -B "${env:GITHUB_WORKSPACE}/build" `
           -D BUILD_DOCS=OFF `
           -D BUILD_TESTING=OFF `
           -D BUILD_TESTS=OFF `
           -D OPENCL_SDK_BUILD_SAMPLES=OFF `
           -D OPENCL_ICD_LOADER_BUILD_TESTING=OFF `
+          -D CPACK_SOURCE_PACKAGE_FILE_NAME=OpenCL-SDK-${{github.ref_name}}-Source `
           -D CPACK_SOURCE_IGNORE_FILES="/\\.git/;/\\.gitignore;/\\.gitmodules;/\\.gitlab/;/\\.github/;/\\.reuse/;/\\.appveyor.yml;/build/;/install/;/package/"
 
     - name: Package Source
@@ -119,10 +119,10 @@ jobs:
       run: |
         $Generator = if('${{matrix.OS}}' -match 'windows') {'ZIP'} else {'TGZ'}
         & cpack `
-          --config "${env:GITHUB_WORKSPACE}\build\CPackSourceConfig.cmake" `
+          --config "${env:GITHUB_WORKSPACE}/build/CPackSourceConfig.cmake" `
           -G $Generator `
           -C Release `
-          -B "${env:GITHUB_WORKSPACE}\package"
+          -B "${env:GITHUB_WORKSPACE}/package"
 
     - name: Release Source
       uses: softprops/action-gh-release@v1

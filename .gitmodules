@@ -6,4 +6,5 @@
 	url = https://github.com/KhronosGroup/OpenCL-Headers.git
 [submodule "headers-cpp"]
 	path = external/OpenCL-CLHPP
-	url = https://github.com/KhronosGroup/OpenCL-CLHPP.git
+	url = https://github.com/StreamHPC/OpenCL-CLHPP.git
+	branch = no-system-headers-macos

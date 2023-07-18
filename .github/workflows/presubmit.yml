@@ -23,8 +23,8 @@ jobs:
         include:
           - os: ubuntu-22.04
             container: streamhpc/opencl-sdk-intelcpu:ubuntu-22.04-20230717
-            c_compiler: gcc-9
-            cxx_compiler: g++-9
+            c_compiler: gcc-11
+            cxx_compiler: g++-11
             deps: os
           - os: macos-latest
             c_compiler: clang

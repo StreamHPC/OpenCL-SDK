@@ -17,11 +17,19 @@ jobs:
     needs: format
     name: Build ${{ matrix.os }} ${{ matrix.compiler }} ${{ matrix.deps }}
     runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-latest]
-        compiler: [gcc, clang]
-        deps: [os, fetch, vcpkg]
+        include:
+          - os: ubuntu-22.04
+            container: streamhpc/opencl-sdk-intelcpu:ubuntu-22.04-20230717
+            c_compiler: gcc-9
+            cxx_compiler: g++-9
+            deps: os
+          - os: macos-latest
+            c_compiler: clang
+            cxx_compiler: clang++
+            deps: os
     steps:
       - uses: actions/checkout@v2
         with:
@@ -29,15 +37,15 @@ jobs:
           submodules: recursive
       - name: Build
         run: |
-            if [[ "${{ matrix.os }}" == "ubuntu-20.04" ]]; then
-              sudo apt update
-              sudo apt install -y libidn11 libx11-dev libxrandr-dev libxi-dev mesa-common-dev libgl1-mesa-dev libglu1-mesa-dev libudev-dev \
-              `if [[ "${{matrix.deps}}" == "os" ]]; then echo libtclap-dev libglm-dev libglew-dev libsfml-dev libstb-dev; fi;`
+            if [[ "${{ matrix.os }}" == "ubuntu-22.04" ]]; then
+              if [[ "${{matrix.deps}}" == "os" ]]; then
+                sudo apt update ;
+                sudo apt install -y libtclap-dev libglm-dev libglew-dev libsfml-dev libstb-dev ;
+              fi;
               if [[ "${{matrix.deps}}" == "vcpkg" ]]; then
-                git clone https://github.com/Microsoft/vcpkg.git
-                ./vcpkg/bootstrap-vcpkg.sh
-                ./vcpkg/vcpkg install sfml tclap glm glew stb
-                TOOLCHAIN_ARG="-D CMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake"
+                /opt/Microsoft/vcpkg/bootstrap-vcpkg.sh
+                /opt/Microsoft/vcpkg/vcpkg install sfml tclap glm glew stb
+                TOOLCHAIN_ARG="-D CMAKE_TOOLCHAIN_FILE=/opt/Microsoft/vcpkg/scripts/buildsystems/vcpkg.cmake"
               else
                 TOOLCHAIN_ARG=""
               fi
@@ -51,16 +59,9 @@ jobs:
               ./vcpkg/vcpkg install stb
               TOOLCHAIN_ARG="-D CMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake"
             fi
-            if [[ "${{ matrix.compiler }}" == "gcc" ]]; then
-              CC=gcc
-              CXX=g++
-            elif [[ "${{ matrix.compiler }}" == "clang" ]]; then
-              CC=clang
-              CXX=clang++
-            fi
             cmake \
-              -D CMAKE_C_COMPILER=$CC \
-              -D CMAKE_CXX_COMPILER=$CXX \
+              -D CMAKE_C_COMPILER=${{ matrix.c_compiler }} \
+              -D CMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} \
               $TOOLCHAIN_ARG \
               -S . -B build
             cmake \

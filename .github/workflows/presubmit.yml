@@ -36,6 +36,7 @@ jobs:
           fetch-depth: 0
           submodules: recursive
       - name: Build
+        shell: bash
         run: |
             if [[ "${{ matrix.os }}" == "ubuntu-22.04" ]]; then
               if [[ "${{matrix.deps}}" == "os" ]]; then

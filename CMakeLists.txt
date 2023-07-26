@@ -47,6 +47,7 @@ list(APPEND CMAKE_MODULE_PATH
   ${PROJECT_SOURCE_DIR}/cmake/Modules
 )
 include(Dependencies)
+include(Package)
 
 add_subdirectory(lib)
 if(OPENCL_SDK_BUILD_SAMPLES)
@@ -69,6 +70,7 @@ set(config_package_location ${CMAKE_INSTALL_DATADIR}/cmake/OpenCL)
 install(
   FILES ${PROJECT_BINARY_DIR}/OpenCL/OpenCLConfig.cmake
   DESTINATION ${config_package_location}
+  COMPONENT runtime
 )
 
 unset(CMAKE_SIZEOF_VOID_P)
@@ -81,6 +83,7 @@ write_basic_package_version_file(
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/OpenCL/OpenCLConfigVersion.cmake
   DESTINATION ${config_package_location}
+  COMPONENT runtime
 )
 
 include(CPack)

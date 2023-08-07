@@ -230,3 +230,4 @@ endif(OPENCL_SDK_BUILD_SAMPLES)
 # build the install target for the OpenCL SDK.
 option (OPENCL_EXTENSION_LOADER_INSTALL         "Generate Installation Target" ON)
 add_subdirectory(src/Extensions)
+add_subdirectory(src/clinfo)

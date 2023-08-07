@@ -1,0 +1,4 @@
+# Don't enforce formatting for clinfo, as it would make
+# code updates from upstream more difficult.
+DisableFormat: true
+SortIncludes: false

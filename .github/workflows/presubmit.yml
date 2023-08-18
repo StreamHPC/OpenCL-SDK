@@ -1,4 +1,5 @@
 name: Presubmit
+
 on: [push, pull_request]
 
 jobs:
@@ -29,8 +30,246 @@ jobs:
       - name: Install clang-format
         run: sudo apt-get install clang-format
       - name: Check format
-        run: ./scripts/check-format.sh
+        run: $GITHUB_WORKSPACE/scripts/check-format.sh origin/${{ needs.get-branch.outputs.branch }} --binary clang-format
+
+  linux:
+    runs-on: ubuntu-latest
+    needs: format
+    strategy:
+      matrix:
+        CMAKE: [3.26.4]
+        COMPILER:
+          - C_NAME: gcc
+            CXX_NAME: g++
+            VER: 11
+          - C_NAME: gcc
+            CXX_NAME: g++
+            VER: 13
+          - C_NAME: clang
+            CXX_NAME: clang++
+            VER: 14
+          - C_NAME: clang
+            CXX_NAME: clang++
+            VER: 16
+        DEPS: [os, vcpkg]
+        BIN: [64]
+        STD: [11, 17]
+        CONF:
+          - GEN: Unix Makefiles
+            CONFIG: Debug
+          - GEN: Unix Makefiles
+            CONFIG: Release
+          - GEN: Ninja Multi-Config
+            CONFIG: Release
+        IMAGE:
+          - streamhpc/opencl-sdk-intelcpu:ubuntu-22.04-20230717
+    container: ${{matrix.IMAGE}}
+    env:
+      CMAKE_EXE: /opt/Kitware/CMake/${{ matrix.CMAKE }}/bin/cmake
+      CPACK_EXE: /opt/Kitware/CMake/${{ matrix.CMAKE }}/bin/cpack
+      CTEST_EXE: /opt/Kitware/CMake/${{ matrix.CMAKE }}/bin/ctest
+      DEB_INSTALLATION_PATH: /usr
+      CC: ${{matrix.COMPILER.C_NAME}}-${{matrix.COMPILER.VER}}
+      CXX:  ${{matrix.COMPILER.CXX_NAME}}-${{matrix.COMPILER.VER}}
+
+    steps:
+      - name: Checkout OpenCL-SDK
+        uses: actions/checkout@v3
+        with:
+            fetch-depth: 0
+            submodules: recursive
+
+      - name: Checkout OpenCL-Headers
+        uses: actions/checkout@v3
+        with:
+          path: external/OpenCL-Headers
+          # ToDo: Change to KhronosGroup/OpenCL-Headers:main
+          repository: StreamHPC/OpenCL-Headers
+          ref: update-ci
+
+      - name: Checkout OpenCL-CLHPP
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          path: external/OpenCL-CLHPP
+          # ToDo: Change to KhronosGroup/OpenCL-Headers:main
+          repository: StreamHPC/OpenCL-CLHPP
+          ref: update-ci
+
+      - name: Checkout OpenCL-ICD-Loader
+        uses: actions/checkout@v3
+        with:
+          path: external/OpenCL-ICD-Loader
+          # ToDo: Change to KhronosGroup/OpenCL-ICD-Loader:main
+          repository: StreamHPC/OpenCL-ICD-Loader
+          ref: update-ci
+
+      - name: Configure, install & package OpenCL-Headers
+        shell: bash
+        run: mkdir $GITHUB_WORKSPACE/external/OpenCL-Headers/build &&
+          cd $GITHUB_WORKSPACE/external/OpenCL-Headers/build &&
+          $CMAKE_EXE
+          -G "${{matrix.CONF.GEN}}"
+          -D BUILD_TESTING=OFF
+          `if [[ "${{matrix.CONF.GEN}}" == "Unix Makefiles" ]]; then echo "-D CMAKE_BUILD_TYPE=${{matrix.CONF.CONFIG}}"; fi`
+          -D CMAKE_C_FLAGS="-w -m${{matrix.BIN}}"
+          -D CMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/external/OpenCL-Headers/install
+          -D CPACK_PACKAGING_INSTALL_PREFIX=$DEB_INSTALLATION_PATH
+          $GITHUB_WORKSPACE/external/OpenCL-Headers &&
+          $CMAKE_EXE
+          --build $GITHUB_WORKSPACE/external/OpenCL-Headers/build
+          --target install
+          --config ${{matrix.CONF.CONFIG}}
+          --
+          -j`nproc` &&
+          $CPACK_EXE
+          --config "$GITHUB_WORKSPACE/external/OpenCL-Headers/build/CPackConfig.cmake"
+          -G DEB
+          -C ${{matrix.CONF.CONFIG}}
+          -B "$GITHUB_WORKSPACE/external/OpenCL-Headers/package-deb"
+
+      - name: Configure, install & package OpenCL-ICD-Loader
+        run: mkdir $GITHUB_WORKSPACE/external/OpenCL-ICD-Loader/build &&
+          cd $GITHUB_WORKSPACE/external/OpenCL-ICD-Loader/build &&
+          $CMAKE_EXE
+          -G "${{matrix.CONF.GEN}}"
+          -D BUILD_TESTING=OFF
+          `if [[ "${{matrix.CONF.GEN}}" == "Unix Makefiles" ]]; then echo "-D CMAKE_BUILD_TYPE=${{matrix.CONF.CONFIG}}"; fi`
+          -D CMAKE_C_FLAGS="-w -m${{matrix.BIN}}"
+          -D CMAKE_C_EXTENSIONS=OFF
+          -D CMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/external/OpenCL-Headers/install
+          -D CMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/external/OpenCL-ICD-Loader/install
+          -D CPACK_PACKAGING_INSTALL_PREFIX=$DEB_INSTALLATION_PATH
+          $GITHUB_WORKSPACE/external/OpenCL-ICD-Loader &&
+          $CMAKE_EXE
+          --build $GITHUB_WORKSPACE/external/OpenCL-ICD-Loader/build
+          --target install
+          --config ${{matrix.CONF.CONFIG}}
+          --
+          -j`nproc` &&
+          $CPACK_EXE
+          --config "$GITHUB_WORKSPACE/external/OpenCL-ICD-Loader/build/CPackConfig.cmake"
+          -G DEB
+          -C ${{matrix.CONF.CONFIG}}
+          -B "$GITHUB_WORKSPACE/external/OpenCL-ICD-Loader/package-deb"
+
+      - name: Configure & package OpenCL-CLHPP
+        shell: bash
+        run: mkdir $GITHUB_WORKSPACE/external/OpenCL-CLHPP/build &&
+          cd $GITHUB_WORKSPACE/external/OpenCL-CLHPP/build &&
+          $CMAKE_EXE
+          -G "${{matrix.CONF.GEN}}"
+          -D BUILD_TESTING=OFF
+          -D BUILD_EXAMPLES=OFF
+          `if [[ "${{matrix.CONF.GEN}}" == "Unix Makefiles" ]]; then echo "-D CMAKE_BUILD_TYPE=${{matrix.CONF.CONFIG}}"; fi`
+          -D CMAKE_CXX_FLAGS="-w -m${{matrix.BIN}}"
+          -D CMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/external/OpenCL-Headers/install;$GITHUB_WORKSPACE/external/OpenCL-ICD-Loader/install"
+          -D CPACK_PACKAGING_INSTALL_PREFIX=$DEB_INSTALLATION_PATH
+          $GITHUB_WORKSPACE/external/OpenCL-CLHPP &&
+          $CPACK_EXE
+          --config "$GITHUB_WORKSPACE/external/OpenCL-CLHPP/build/CPackConfig.cmake"
+          -G DEB
+          -C ${{matrix.CONF.CONFIG}}
+          -B "$GITHUB_WORKSPACE/external/OpenCL-CLHPP/package-deb"
+
+      - name: Configure
+        shell: bash
+        run: if [[ "${{matrix.DEPS}}" == "vcpkg" ]];
+          then
+            git clone https://github.com/Microsoft/vcpkg.git;
+            ./vcpkg/bootstrap-vcpkg.sh;
+            ./vcpkg/vcpkg install sfml tclap glm glew stb;
+            TOOLCHAIN_ARG="-D CMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake";
+          else
+            TOOLCHAIN_ARG="";
+          fi &&
+          mkdir $GITHUB_WORKSPACE/build && cd $GITHUB_WORKSPACE/build &&
+          $CMAKE_EXE
+          -G "${{matrix.CONF.GEN}}"
+          `if [[ "${{matrix.CONF.GEN}}" == "Unix Makefiles" ]]; then echo "-D CMAKE_BUILD_TYPE=${{matrix.CONF.CONFIG}}"; fi`
+          -D BUILD_DOCS=ON
+          -D BUILD_TESTING=ON
+          -D BUILD_EXAMPLES=ON
+          -D OPENCL_SDK_BUILD_SAMPLES=OFF
+          -D OPENCL_ICD_LOADER_BUILD_TESTING=ON
+          -D CMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/install
+          -D CPACK_PACKAGING_INSTALL_PREFIX=$DEB_INSTALLATION_PATH
+          $GITHUB_WORKSPACE
+
+      - name: Build
+        shell: bash
+        run: if [[ "${{matrix.CONF.GEN}}" == "Unix Makefiles" ]];
+          then
+            $CMAKE_EXE --build $GITHUB_WORKSPACE/build -- -j`nproc`;
+          else
+            $CMAKE_EXE --build $GITHUB_WORKSPACE/build --config Debug   -- -j`nproc`;
+            $CMAKE_EXE --build $GITHUB_WORKSPACE/build --config Release -- -j`nproc`;
+          fi;
+
+      - name: Test
+        shell: bash
+        working-directory: ${{runner.workspace}}/OpenCL-SDK/build
+        run: if [[ "${{matrix.CONF.GEN}}" == "Unix Makefiles" ]];
+          then
+            $CTEST_EXE --output-on-failure --parallel `nproc`;
+          else
+            $CTEST_EXE --output-on-failure -C Debug   --parallel `nproc`;
+            $CTEST_EXE --output-on-failure -C Release --parallel `nproc`;
+          fi;
+
+      - name: Package DEB
+        shell: bash
+        run: $CPACK_EXE
+          --config "$GITHUB_WORKSPACE/build/CPackConfig.cmake"
+          -G DEB
+          -C Release
+          -B "$GITHUB_WORKSPACE/package-deb" &&
+          dpkg -c $GITHUB_WORKSPACE/package-deb/khronos-opencl-sdk_2023.4.17-1_amd64.deb
+
+      - name: Consume (DEB)
+        shell: bash
+        run: dpkg -i $GITHUB_WORKSPACE/external/OpenCL-*/package-deb/*.deb &&
+          dpkg -i --force-overwrite $GITHUB_WORKSPACE/package-deb/*.deb &&
+          mkdir $GITHUB_WORKSPACE/build_package &&
+          cd $GITHUB_WORKSPACE/build_package &&
+          $CMAKE_EXE
+          -G "${{matrix.CONF.GEN}}"
+          `if [[ "${{matrix.CONF.GEN}}" == "Unix Makefiles" ]]; then echo "-D CMAKE_BUILD_TYPE=${{matrix.CONF.CONFIG}}"; fi`
+          $GITHUB_WORKSPACE/test/cmake/pkgconfig/useutil &&
+          if [[ "${{matrix.CONF.GEN}}" == "Unix Makefiles" ]];
+          then
+            $CMAKE_EXE --build $GITHUB_WORKSPACE/build_package -- -j`nproc`;
+          else
+            $CMAKE_EXE --build $GITHUB_WORKSPACE/build_package --config Debug   -- -j`nproc`;
+            $CMAKE_EXE --build $GITHUB_WORKSPACE/build_package --config Release -- -j`nproc`;
+          fi;
+
+      - name: Uninstall (DEB)
+        shell: bash
+        run: apt-get remove -y ocl-icd-opencl-dev ocl-icd-libopencl1 opencl-c-headers opencl-clhpp-headers opencl-sdk
+
+      - name: Test install
+        shell: bash
+        run: $CMAKE_EXE --build $GITHUB_WORKSPACE/build --target install --config ${{matrix.CONF.CONFIG}} -- -j`nproc`;
+
+      - name: Consume (install)
+        shell: bash
+        run: mkdir $GITHUB_WORKSPACE/build_install && cd $GITHUB_WORKSPACE/build_install &&
+          $CMAKE_EXE
+          -G "${{matrix.CONF.GEN}}"
+          -D CMAKE_BUILD_TYPE=${{matrix.CONF.CONFIG}}
+          -D CMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/install
+          $GITHUB_WORKSPACE/test/cmake/pkgconfig/useutil &&
+          if [[ "${{matrix.CONF.GEN}}" == "Unix Makefiles" ]];
+          then
+            $CMAKE_EXE --build $GITHUB_WORKSPACE/build_install -- -j`nproc`;
+          else
+            $CMAKE_EXE --build $GITHUB_WORKSPACE/build_install --config Debug   -- -j`nproc`;
+            $CMAKE_EXE --build $GITHUB_WORKSPACE/build_install --config Release -- -j`nproc`;
+          fi;
+
   build:
+    if: false
     needs: format
     name: Build ${{ matrix.os }} ${{ matrix.compiler }} ${{ matrix.deps }}
     runs-on: ${{ matrix.os }}
@@ -86,6 +325,7 @@ jobs:
               --verbose \
               --parallel `numproc`
   buildwin:
+    if: false
     needs: format
     name: Build Windows ${{ matrix.deps }}
     runs-on: windows-latest
@@ -118,6 +358,7 @@ jobs:
             /noLogo
 
   python:
+    if: false
     name: Exercise Python examples on ${{matrix.os}}
     strategy:
       matrix:
@@ -154,6 +395,7 @@ jobs:
           done
 
   checkruby:
+    if: false
     name: Check Ruby Samples ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:

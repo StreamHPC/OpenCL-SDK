@@ -57,10 +57,6 @@ jobs:
         CONF:
           - GEN: Unix Makefiles
             CONFIG: Debug
-          # - GEN: Unix Makefiles
-          #   CONFIG: Release
-          # - GEN: Ninja Multi-Config
-          #   CONFIG: Release
         IMAGE:
           - streamhpc/opencl-sdk-base:ubuntu-22.04-20230717
     container: ${{matrix.IMAGE}}
@@ -98,7 +94,7 @@ jobs:
       - name: Configure, package & install OpenCL-ICD-Loader
         run: $CMAKE_EXE
           -G "${{matrix.CONF.GEN}}"
-          `if [[ "${{matrix.CONF.GEN}}" == "Unix Makefiles" ]]; then echo "-DCMAKE_BUILD_TYPE=${{matrix.CONF.CONFIG}}"; fi`
+          `if [[ "${{matrix.CONF.GEN}}" == "Unix Makefiles" ]]; then echo "-D ${{matrix.CONF.CONFIG}}"; fi`
           -D BUILD_TESTING=OFF
           -D CPACK_PACKAGING_INSTALL_PREFIX=$DEB_INSTALLATION_PATH
           -S $GITHUB_WORKSPACE/external/OpenCL-ICD-Loader

@@ -48,7 +48,8 @@ namespace sdk {
                          data + im.width * im.height * im.pixel_size);
 
         if (im.width && im.height && im.pixel_size
-            && im.pixels.size() == im.width * im.height * im.pixel_size)
+            && im.pixels.size()
+                == static_cast<size_t>(im.width * im.height * im.pixel_size))
             err = CL_SUCCESS;
         else
             cl::util::detail::errHandler(CL_INVALID_ARG_VALUE, &err,

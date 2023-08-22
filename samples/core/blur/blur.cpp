@@ -732,8 +732,8 @@ void BlurCppExample::finalize_blur()
     // restore image type if needed
     if (input_image.pixel_size != output_image.pixel_size)
     {
-        const auto pixels = input_image.width * input_image.height,
-                   pixel_size = output_image.pixel_size;
+        const size_t pixels = input_image.width * input_image.height,
+                     pixel_size = output_image.pixel_size;
         for (size_t i = 1; i < pixels; ++i)
             memcpy(output_image.pixels.data() + pixel_size * i,
                    output_image.pixels.data() + 4 * i, pixel_size);

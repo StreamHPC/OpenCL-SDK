@@ -17,7 +17,8 @@ cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 14)
 
 project(OpenCL-SDK
-  VERSION 2023.04.17
+  # ToDo
+  VERSION 2023.02.07
   LANGUAGES
     C CXX
 )
@@ -28,6 +29,9 @@ cmake_dependent_option(OPENCL_SDK_BUILD_OPENGL_SAMPLES "Build OpenCL-OpenGL inte
 cmake_dependent_option(OPENCL_SDK_TEST_SAMPLES "Add CTest to samples (where applicable)" ON OPENCL_SDK_BUILD_SAMPLES OFF)
 
 option(OPENCL_SDK_BUILD_CLINFO "Build clinfo utility" ON)
+if (("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin") AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU"))
+  string(APPEND CMAKE_CXX_FLAGS " -stdlib=libstdc++")
+endif()
 
 include(CTest)
 

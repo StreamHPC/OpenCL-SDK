@@ -184,6 +184,12 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+    - name: Install samples dependencies
+      shell: bash
+      run: |
+        apt-get -qq update
+        apt-get -qq install -y libvulkan-dev
+
     - name: Configure, package & install OpenCL-Headers
       run: $CMAKE_EXE
           -G "${{matrix.CONF.GEN}}"
@@ -392,6 +398,9 @@ jobs:
       INTEL_OCL_URL: https://github.com/intel/llvm/releases/download/2023-WW27/win-oclcpuexp-2023.16.6.0.28_rel.zip
       INTEL_TBB_URL: https://github.com/oneapi-src/oneTBB/releases/download/v2021.10.0/oneapi-tbb-2021.10.0-win.zip
       IMAGE_INTEL_PREFIX: C:\Tools\Intel
+      VULKAN_SDK_URL: https://sdk.lunarg.com/sdk/download/1.3.261.1/windows/VulkanSDK-1.3.261.1-Installer.exe
+      VULKAN_RT_URL: 'https://sdk.lunarg.com/sdk/download/1.3.261.1/windows/VulkanRT-1.3.261.1-Installer.exe'
+      VULKAN_SDK_VERSION: '1.3.261.1'
 
     steps:
     - name: Cache Ninja install
@@ -427,6 +436,12 @@ jobs:
         New-Item -Type Directory HKLM:\SOFTWARE\Khronos\OpenCL -Force | Out-Null; `
         New-Item -Type File HKLM:\SOFTWARE\Khronos\OpenCL\Vendors | Out-Null; `
         Set-ItemProperty -Path HKLM:\SOFTWARE\Khronos\OpenCL\Vendors -Name ${env:IMAGE_INTEL_PREFIX}\oclcpuexp\intelocl64.dll -Type DWord -Value 0;
+
+    - name: Install samples dependencies
+      run: |
+        Invoke-WebRequest ${env:VULKAN_SDK_URL} -OutFile vulkan-sdk-installer.exe; `
+        .\vulkan-sdk-installer.exe install --accept-licenses --confirm-command ; `
+        Remove-Item vulkan-sdk-installer.exe; `
 
     - name: Cache dependencies (vcpkg)
       if: matrix.DEPS == 'vcpkg'
@@ -654,6 +669,11 @@ jobs:
         # We need to provide an OpenCL driver for Intel CPU on mac
         brew install pocl
         cmake --version
+
+    - name: Install samples dependencies
+      shell: bash
+      run: |
+        brew install vulkan-loader
 
     - name: Install dependencies (Homebrew)
       if: matrix.DEPS == 'system'

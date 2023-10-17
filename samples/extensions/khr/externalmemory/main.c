@@ -58,7 +58,7 @@ ParseState parse_SaxpyOptions(const char identifier,
     switch (identifier)
     {
         case 'l':
-            if ((value = cag_option_get_value(cag_context)))
+            if (0 != (value = cag_option_get_value(cag_context)))
             {
                 opts->length = strtoul(value, NULL, 0);
                 return ParsedOK;
@@ -180,27 +180,28 @@ const cl_external_memory_handle_type_khr cl_external_memory_handle_type =
 // type.
 bool cl_check_external_memory_handle_type(
     const cl_device_id cl_device,
-    cl_external_memory_handle_type_khr cl_external_memory_handle_type)
+    cl_external_memory_handle_type_khr external_memory_handle_type)
 {
-    cl_external_memory_handle_type_khr* supported_handle_types;
+    cl_external_memory_handle_type_khr* supported_handle_types = NULL;
     size_t supported_handle_types_count = 0;
+    cl_int error = CL_SUCCESS;
 
-    OCLERROR_PAR(
+    OCLERROR_RET(
         clGetDeviceInfo(cl_device,
                         CL_DEVICE_EXTERNAL_MEMORY_IMPORT_HANDLE_TYPES_KHR, 0,
                         NULL, &supported_handle_types_count),
-        NULL, err);
+        error, err);
     supported_handle_types = (cl_external_memory_handle_type_khr*)malloc(
         supported_handle_types_count);
 
-    OCLERROR_PAR(
+    OCLERROR_RET(
         clGetDeviceInfo(
             cl_device, CL_DEVICE_EXTERNAL_MEMORY_IMPORT_HANDLE_TYPES_KHR,
             supported_handle_types_count, supported_handle_types, NULL),
-        NULL, err);
+        error, err);
     for (size_t i = 0; i < supported_handle_types_count; ++i)
     {
-        if (cl_external_memory_handle_type == supported_handle_types[i])
+        if (external_memory_handle_type == supported_handle_types[i])
         {
             free(supported_handle_types);
             return true;
@@ -239,7 +240,7 @@ int main(int argc, char* argv[])
                  end);
 
     // Fill in Vulkan application info.
-    VkApplicationInfo app_info = {};
+    VkApplicationInfo app_info = { 0 };
     app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     app_info.pApplicationName = "OpenCL-Vulkan interop example";
     app_info.applicationVersion = VK_MAKE_VERSION(3, 0, 0);
@@ -253,7 +254,7 @@ int main(int argc, char* argv[])
     };
     instance_create_info.pApplicationInfo = &app_info;
     instance_create_info.enabledExtensionCount =
-        required_instance_extensions_count;
+        (uint32_t)required_instance_extensions_count;
     instance_create_info.ppEnabledExtensionNames = required_instance_extensions;
 
     VkInstance instance;
@@ -283,7 +284,8 @@ int main(int argc, char* argv[])
     };
     device_create_info.queueCreateInfoCount = 1;
     device_create_info.pQueueCreateInfos = &queue_create_info;
-    device_create_info.enabledExtensionCount = required_device_extensions_count;
+    device_create_info.enabledExtensionCount =
+        (uint32_t)required_device_extensions_count;
     device_create_info.ppEnabledExtensionNames = required_device_extensions;
 
     VK_CHECK(vkCreateDevice(vk_physical_device, &device_create_info, NULL,
@@ -367,7 +369,7 @@ int main(int argc, char* argv[])
 
     // Random number generator.
     pcg32_random_t rng;
-    pcg32_srandom_r(&rng, 11111, -2222);
+    pcg32_srandom_r(&rng, 11111, 2222);
 
     // Initialize input and output vectors and constant.
     cl_float *arr_x, *arr_y, a;
@@ -376,7 +378,7 @@ int main(int argc, char* argv[])
               arrx);
     if (diag_opts.verbose)
     {
-        printf("done.\nGenerating random scalar and %ld random numbers for "
+        printf("done.\nGenerating random scalar and %zd random numbers for "
                "saxpy input vector...",
                length);
         fflush(stdout);
@@ -422,7 +424,7 @@ int main(int argc, char* argv[])
     };
     external_memory_buffer_info.handleTypes = vk_external_memory_handle_type;
 
-    VkBufferCreateInfo buffer_info = {};
+    VkBufferCreateInfo buffer_info = { 0 };
     buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     buffer_info.pNext = &external_memory_buffer_info;
     buffer_info.size = sizeof(cl_float) * length;
@@ -436,7 +438,7 @@ int main(int argc, char* argv[])
     VK_CHECK(vkCreateBuffer(vk_device, &buffer_info, NULL, &vk_buf_y));
 
     // Get requirements and necessary information for (exportable) memory.
-    VkMemoryRequirements mem_requirements_x = {}, mem_requirements_y = {};
+    VkMemoryRequirements mem_requirements_x = { 0 }, mem_requirements_y = { 0 };
     vkGetBufferMemoryRequirements(vk_device, vk_buf_x, &mem_requirements_x);
     vkGetBufferMemoryRequirements(vk_device, vk_buf_y, &mem_requirements_y);
 
@@ -445,7 +447,7 @@ int main(int argc, char* argv[])
     };
     export_memory_alloc_info.handleTypes = vk_external_memory_handle_type;
 
-    VkMemoryAllocateInfo memory_alloc_info_x = {};
+    VkMemoryAllocateInfo memory_alloc_info_x = { 0 };
     memory_alloc_info_x.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     memory_alloc_info_x.pNext = &export_memory_alloc_info;
     memory_alloc_info_x.allocationSize = mem_requirements_x.size;
@@ -454,7 +456,7 @@ int main(int argc, char* argv[])
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
             | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-    VkMemoryAllocateInfo memory_alloc_info_y = {};
+    VkMemoryAllocateInfo memory_alloc_info_y = { 0 };
     memory_alloc_info_y.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     memory_alloc_info_y.pNext = &export_memory_alloc_info;
     memory_alloc_info_y.allocationSize = mem_requirements_y.size;
@@ -485,14 +487,14 @@ int main(int argc, char* argv[])
 
     // Get Vulkan external memory file descriptors for accessing external memory
     // with OpenCL.
-    VkMemoryGetFdInfoKHR fd_info_x = {};
+    VkMemoryGetFdInfoKHR fd_info_x = { 0 };
     fd_info_x.sType = VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR;
     fd_info_x.pNext = NULL;
     fd_info_x.memory = vk_buf_x_memory;
     fd_info_x.handleType = vk_external_memory_handle_type;
     int fd_x;
 
-    VkMemoryGetFdInfoKHR fd_info_y = {};
+    VkMemoryGetFdInfoKHR fd_info_y = { 0 };
     fd_info_y.sType = VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR;
     fd_info_y.pNext = NULL;
     fd_info_y.memory = vk_buf_y_memory;
@@ -513,7 +515,7 @@ int main(int argc, char* argv[])
         (cl_mem_properties)CL_EXTERNAL_MEMORY_HANDLE_OPAQUE_FD_KHR,
         (cl_mem_properties)fd_x,
         (cl_mem_properties)CL_DEVICE_HANDLE_LIST_KHR,
-        (cl_mem_properties)cl_device,
+        (cl_mem_properties)(uintptr_t)cl_device,
         CL_DEVICE_HANDLE_LIST_END_KHR,
         0
     };
@@ -521,7 +523,7 @@ int main(int argc, char* argv[])
         (cl_mem_properties)CL_EXTERNAL_MEMORY_HANDLE_OPAQUE_FD_KHR,
         (cl_mem_properties)fd_y,
         (cl_mem_properties)CL_DEVICE_HANDLE_LIST_KHR,
-        (cl_mem_properties)cl_device,
+        (cl_mem_properties)(uintptr_t)cl_device,
         CL_DEVICE_HANDLE_LIST_END_KHR,
         0
     };

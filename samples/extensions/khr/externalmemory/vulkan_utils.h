@@ -37,11 +37,11 @@
 // error code.
 #define VK_CHECK(condition)                                                    \
     {                                                                          \
-        const VkResult error = condition;                                      \
-        if (error != VK_SUCCESS)                                               \
+        const VkResult _error = condition;                                     \
+        if (_error != VK_SUCCESS)                                              \
         {                                                                      \
             fprintf(stderr, "A vulkan error encountered: %d at %s: %d\n",      \
-                    error, __FILE__, __LINE__);                                \
+                    _error, __FILE__, __LINE__);                               \
             exit(EXIT_FAILURE);                                                \
         }                                                                      \
     }
@@ -131,10 +131,10 @@ bool is_vk_device_suitable(const struct cl_device_candidate* cl_candidates,
     // with the same UUID.
     {
         // Query the Vulkan device UUID using vkGetPhysicalDeviceProperties2.
-        VkPhysicalDeviceIDPropertiesKHR id_props = {};
+        VkPhysicalDeviceIDPropertiesKHR id_props = { 0 };
         id_props.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES_KHR;
 
-        VkPhysicalDeviceProperties2KHR props2 = {};
+        VkPhysicalDeviceProperties2KHR props2 = { 0 };
         props2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
         props2.pNext = &id_props;
 
@@ -185,16 +185,17 @@ bool check_khronos_extensions(
     const char* const* const required_khronos_extensions,
     const size_t required_khronos_extensions_count)
 {
+    cl_int error = CL_SUCCESS;
     size_t supported_extensions_count;
-    OCLERROR_PAR(clGetDeviceInfo(cl_device, CL_DEVICE_EXTENSIONS, 0, NULL,
+    OCLERROR_RET(clGetDeviceInfo(cl_device, CL_DEVICE_EXTENSIONS, 0, NULL,
                                  &supported_extensions_count),
-                 NULL, err);
+                 error, ret);
     char* supported_extensions =
         (char*)malloc(supported_extensions_count * sizeof(char));
-    OCLERROR_PAR(clGetDeviceInfo(cl_device, CL_DEVICE_EXTENSIONS,
+    OCLERROR_RET(clGetDeviceInfo(cl_device, CL_DEVICE_EXTENSIONS,
                                  supported_extensions_count,
                                  supported_extensions, NULL),
-                 NULL, err);
+                 error, err);
 
     for (size_t i = 0; i < required_khronos_extensions_count; ++i)
     {
@@ -208,6 +209,7 @@ bool check_khronos_extensions(
     return true;
 err:
     free(supported_extensions);
+ret:
     return false;
 }
 
@@ -221,13 +223,15 @@ find_suitable_device(VkInstance instance,
 {
     // Query OpenCL devices available.
     cl_int error = CL_SUCCESS;
+    bool candidate_found = false;
     cl_uint cl_platform_count = 0;
-    OCLERROR_PAR(clGetPlatformIDs(0, NULL, &cl_platform_count), NULL, err);
+    struct device_candidate found_candidate = {0};
+    OCLERROR_RET(clGetPlatformIDs(0, NULL, &cl_platform_count), error, ret);
 
     cl_platform_id* platforms =
         (cl_platform_id*)malloc(cl_platform_count * sizeof(cl_platform_id));
-    OCLERROR_PAR(clGetPlatformIDs(cl_platform_count, platforms, NULL), NULL,
-                 err);
+    OCLERROR_RET(clGetPlatformIDs(cl_platform_count, platforms, NULL), error,
+                 platforms);
 
     size_t cl_device_count = 0;
     const char* uuid_khronos_extension[] = {
@@ -237,15 +241,16 @@ find_suitable_device(VkInstance instance,
          ++cl_platform_id)
     {
         cl_uint cl_platform_devices_count = 0;
-        OCLERROR_PAR(clGetDeviceIDs(platforms[cl_platform_id],
+        OCLERROR_RET(clGetDeviceIDs(platforms[cl_platform_id],
                                     CL_DEVICE_TYPE_ALL, 0, NULL,
                                     &cl_platform_devices_count),
-                     NULL, err);
+                     error, platforms);
         for (cl_uint device_id = 0; device_id < cl_platform_devices_count;
              ++device_id)
         {
-            cl_device_id device = cl_util_get_device(
-                cl_platform_id, device_id, CL_DEVICE_TYPE_ALL, &error);
+            cl_device_id device;
+            OCLERROR_PAR(device = cl_util_get_device(
+                cl_platform_id, device_id, CL_DEVICE_TYPE_ALL, &error), error, platforms);
             cl_device_count +=
                 check_khronos_extensions(device, uuid_khronos_extension, 1);
         }
@@ -263,10 +268,10 @@ find_suitable_device(VkInstance instance,
          ++cl_platform_id)
     {
         cl_uint cl_platform_devices_count = 0;
-        OCLERROR_PAR(clGetDeviceIDs(platforms[cl_platform_id],
+        OCLERROR_RET(clGetDeviceIDs(platforms[cl_platform_id],
                                     CL_DEVICE_TYPE_ALL, 0, NULL,
                                     &cl_platform_devices_count),
-                     NULL, err);
+                     error, candidates);
 
         for (cl_uint cl_candidate_id = 0;
              cl_candidate_id < cl_platform_devices_count;
@@ -277,10 +282,10 @@ find_suitable_device(VkInstance instance,
             if (check_khronos_extensions(device, uuid_khronos_extension, 1))
             {
                 cl_uchar vk_candidate_uuid[CL_UUID_SIZE_KHR];
-                OCLERROR_PAR(clGetDeviceInfo(device, CL_DEVICE_UUID_KHR,
+                OCLERROR_RET(clGetDeviceInfo(device, CL_DEVICE_UUID_KHR,
                                              CL_UUID_SIZE_KHR,
                                              &vk_candidate_uuid, NULL),
-                             NULL, err);
+                             error, candidates);
 
                 struct cl_device_candidate candidate;
                 candidate.device = device;
@@ -302,28 +307,34 @@ find_suitable_device(VkInstance instance,
 
     // Find a suitable Vulkan physical device compatible with one of the OpenCL
     // devices available.
-    struct device_candidate candidate;
     for (cl_uint vk_device_id = 0; vk_device_id < vk_device_count;
          ++vk_device_id)
     {
         VkPhysicalDevice vk_device = vk_devices[vk_device_id];
         if (is_vk_device_suitable(cl_candidates, cl_device_count, vk_device,
-                                  &candidate, required_device_extensions,
+                                  &found_candidate, required_device_extensions,
                                   required_device_extensions_count))
         {
-            return candidate;
+            candidate_found = true;
+            break;
         }
     }
+    if (!candidate_found)
+    {
+        printf("No suitable OpenCL Vulkan-compatible devices available\n");
+    }
 
-err:
-    fprintf(stdout, "No suitable OpenCL Vulkan-compatible devices available\n");
-
-    // Free resources.
-    free(platforms);
-    free(cl_candidates);
     free(vk_devices);
-
-    exit(EXIT_SUCCESS);
+candidates:
+    free(cl_candidates);
+platforms:
+    free(platforms);
+ret:
+    if (candidate_found)
+    {
+        return found_candidate;
+    }
+    exit(error);
 }
 
 

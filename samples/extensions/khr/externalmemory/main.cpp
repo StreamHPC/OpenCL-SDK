@@ -124,7 +124,7 @@ const cl_external_memory_handle_type_khr cl_external_memory_handle_type =
 // type.
 bool cl_check_external_memory_handle_type(
     const cl::Device cl_device,
-    cl_external_memory_handle_type_khr cl_external_memory_handle_type)
+    cl_external_memory_handle_type_khr external_memory_handle_type)
 {
     std::vector<cl_external_memory_handle_type_khr> supported_handle_types;
     cl_device.getInfo(CL_DEVICE_EXTERNAL_MEMORY_IMPORT_HANDLE_TYPES_KHR,
@@ -133,7 +133,7 @@ bool cl_check_external_memory_handle_type(
     const auto it = std::find_if(
         supported_handle_types.begin(), supported_handle_types.end(),
         [&](const cl_external_memory_handle_type_khr& supported_handle_type) {
-            return cl_external_memory_handle_type == supported_handle_type;
+            return external_memory_handle_type == supported_handle_type;
         });
     return it != supported_handle_types.end();
 }
@@ -165,9 +165,8 @@ int main(int argc, char* argv[])
                        required_instance_extensions_str.end(),
                        required_instance_extensions.begin(),
                        [&](const std::string& str) { return str.c_str(); });
-        VkInstanceCreateInfo instance_create_info = {
-            VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO
-        };
+        VkInstanceCreateInfo instance_create_info{};
+        instance_create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         instance_create_info.pApplicationInfo = &app_info;
         instance_create_info.enabledExtensionCount =
             static_cast<uint32_t>(required_instance_extensions.size());
@@ -198,16 +197,14 @@ int main(int argc, char* argv[])
 
         // Set up necessary info and create Vulkan device from physical device.
         constexpr float default_queue_priority = 1.0f;
-        VkDeviceQueueCreateInfo queue_create_info = {
-            VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO
-        };
+        VkDeviceQueueCreateInfo queue_create_info{};
+        queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queue_create_info.queueFamilyIndex = 0;
         queue_create_info.queueCount = 1;
         queue_create_info.pQueuePriorities = &default_queue_priority;
 
-        VkDeviceCreateInfo device_create_info = {
-            VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO
-        };
+        VkDeviceCreateInfo device_create_info{};
+        device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
         device_create_info.queueCreateInfoCount = 1;
         device_create_info.pQueueCreateInfos = &queue_create_info;
         device_create_info.enabledExtensionCount =
@@ -340,9 +337,9 @@ int main(int argc, char* argv[])
         }
 
         // Create Vulkan (external) buffers and assign memory to them.
-        VkExternalMemoryBufferCreateInfo external_memory_buffer_info = {
-            VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO
-        };
+        VkExternalMemoryBufferCreateInfo external_memory_buffer_info{};
+        external_memory_buffer_info.sType =
+            VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO;
         external_memory_buffer_info.handleTypes =
             vk_external_memory_handle_type;
 
@@ -364,9 +361,9 @@ int main(int argc, char* argv[])
         vkGetBufferMemoryRequirements(vk_device, vk_buf_x, &mem_requirements_x);
         vkGetBufferMemoryRequirements(vk_device, vk_buf_y, &mem_requirements_y);
 
-        VkExportMemoryAllocateInfo export_memory_alloc_info = {
-            VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO
-        };
+        VkExportMemoryAllocateInfo export_memory_alloc_info{};
+        export_memory_alloc_info.sType =
+            VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO;
         export_memory_alloc_info.handleTypes = vk_external_memory_handle_type;
 
         VkMemoryAllocateInfo memory_alloc_info_x{};

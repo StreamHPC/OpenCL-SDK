@@ -13,17 +13,19 @@
 # limitations under the License.
 
 add_sample(
-    ${test}
+    TEST
     TARGET externalmemory
     VERSION 300
     SOURCES main.c
     KERNELS external_saxpy.cl
-    LIBS ${Vulkan_LIBRARIES}) # link against Vulkan
+    LIBS Vulkan::Vulkan
+    DEFINITIONS $<$<PLATFORM_ID:Windows>:VK_USE_PLATFORM_WIN32_KHR>)
 
 add_sample(
-    ${test}
+    TEST
     TARGET externalmemorycpp
     VERSION 300
     SOURCES main.cpp
     KERNELS external_saxpy.cl
-    LIBS ${Vulkan_LIBRARIES}) # link against Vulkan
+    LIBS Vulkan::Vulkan
+    DEFINITIONS $<$<PLATFORM_ID:Windows>:VK_USE_PLATFORM_WIN32_KHR>)

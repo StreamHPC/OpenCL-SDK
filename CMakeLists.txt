@@ -59,12 +59,45 @@ include(GNUInstallDirs)
 file(
   WRITE ${PROJECT_BINARY_DIR}/OpenCL/OpenCLConfig.cmake
   [[
+
 get_filename_component(PARENT_DIR ${CMAKE_CURRENT_LIST_DIR} PATH)
 include("${PARENT_DIR}/OpenCLHeaders/OpenCLHeadersConfig.cmake")
 include("${PARENT_DIR}/OpenCLICDLoader/OpenCLICDLoaderConfig.cmake")
 include("${PARENT_DIR}/OpenCLHeadersCpp/OpenCLHeadersCppConfig.cmake")
 include("${PARENT_DIR}/OpenCLUtils/OpenCLUtilsConfig.cmake")
 include("${PARENT_DIR}/OpenCLUtilsCpp/OpenCLUtilsCppConfig.cmake")
+
+get_target_properties(OpenCL_INCLUDE_DIR OpenCL::Headers INTERFACE_INCLUDE_DIRECTORIES)
+
+get_target_properties(OpenCL_LIBRARY OpenCL::OpenCL INTERFACE_LINK_LIBRARIES)
+
+get_target_properties(HEADERSCPP_INCLUDE_DIRS OpenCL::HeadersCpp INTERFACE_INCLUDE_DIRECTORIES)
+
+get_target_properties(UTILS_INCLUDE_DIRS OpenCL::Utils INTERFACE_INCLUDE_DIRECTORIES)
+get_target_properties(UTILS_LINK_LIBS OpenCL::Utils INTERFACE_LINK_LIBRARIES)
+
+get_target_properties(UTILSCPP_INCLUDE_DIRS OpenCL::UtilsCpp INTERFACE_INCLUDE_DIRECTORIES)
+get_target_properties(UTILSCPP_LINK_LIBS OpenCL::UtilsCpp INTERFACE_LINK_LIBRARIES)
+
+set(OpenCL_FOUND ON PARENT_SCOPE)
+
+set(OpenCL_INCLUDE_DIRS
+  "${OpenCL_INCLUDE_DIR}"
+  "${HEADERSCPP_INCLUDE_DIRS}"
+  PARENT_SCOPE)
+
+set(OpenCL_LIBRARIES
+  "${OpenCL_LIBRARY}"
+  PARENT_SCOPE)
+
+set(OpenCL_VERSION_MAJOR 3 PARENT_SCOPE)
+set(OpenCL_VERSION_MINOR 0 PARENT_SCOPE)
+set(OpenCL_VERSION_STRING
+  "${OpenCL_VERSION_MAJOR}.${OpenCL_VERSION_MINOR}"
+  PARENT_SCOPE)
+
+set(OpenCL_INCLUDE_DIR "${OpenCL_INCLUDE_DIR}" CACHE PATH "Path to the OpenCL C headers")
+set(OpenCL_LIBRARY "${OpenCL_LIBRARY}" CACHE FILEPATH "Path to the OpenCL ICD Loader")
   ]]
 )
 set(config_package_location ${CMAKE_INSTALL_DATADIR}/cmake/OpenCL)

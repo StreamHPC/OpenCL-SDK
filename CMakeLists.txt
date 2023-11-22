@@ -67,17 +67,17 @@ include("${PARENT_DIR}/OpenCLHeadersCpp/OpenCLHeadersCppConfig.cmake")
 include("${PARENT_DIR}/OpenCLUtils/OpenCLUtilsConfig.cmake")
 include("${PARENT_DIR}/OpenCLUtilsCpp/OpenCLUtilsCppConfig.cmake")
 
-get_target_properties(OpenCL_INCLUDE_DIR OpenCL::Headers INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property(OpenCL_INCLUDE_DIR OpenCL::Headers INTERFACE_INCLUDE_DIRECTORIES)
 
-get_target_properties(OpenCL_LIBRARY OpenCL::OpenCL INTERFACE_LINK_LIBRARIES)
+get_target_property(OpenCL_LIBRARY OpenCL::OpenCL INTERFACE_LINK_LIBRARIES)
 
-get_target_properties(HEADERSCPP_INCLUDE_DIRS OpenCL::HeadersCpp INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property(HEADERSCPP_INCLUDE_DIRS OpenCL::HeadersCpp INTERFACE_INCLUDE_DIRECTORIES)
 
-get_target_properties(UTILS_INCLUDE_DIRS OpenCL::Utils INTERFACE_INCLUDE_DIRECTORIES)
-get_target_properties(UTILS_LINK_LIBS OpenCL::Utils INTERFACE_LINK_LIBRARIES)
+get_target_property(UTILS_INCLUDE_DIRS OpenCL::Utils INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property(UTILS_LINK_LIBS OpenCL::Utils INTERFACE_LINK_LIBRARIES)
 
-get_target_properties(UTILSCPP_INCLUDE_DIRS OpenCL::UtilsCpp INTERFACE_INCLUDE_DIRECTORIES)
-get_target_properties(UTILSCPP_LINK_LIBS OpenCL::UtilsCpp INTERFACE_LINK_LIBRARIES)
+get_target_property(UTILSCPP_INCLUDE_DIRS OpenCL::UtilsCpp INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property(UTILSCPP_LINK_LIBS OpenCL::UtilsCpp INTERFACE_LINK_LIBRARIES)
 
 set(OpenCL_FOUND ON PARENT_SCOPE)
 

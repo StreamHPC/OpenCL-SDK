@@ -3,11 +3,15 @@ include(GNUInstallDirs)
 
 foreach(UTIL_LIB_NAME IN ITEMS Utils UtilsCpp)
   if(UTIL_LIB_NAME STREQUAL Utils)
-    set(UTIL_LIB_SOURCES src/Utils/Utils.c)
+    set(UTIL_LIB_SOURCES
+      src/Utils/Utils.c
+      "${whereami_SOURCES}")
     set(UTIL_LIB_DEPS
       OpenCL::Headers
-      $<$<BOOL:${HAVE_LIB_M}>:m>
     )
+    if(HAVE_LIB_M)
+      list(APPEND UTIL_LIB_DEPS m)
+    endif()
     set(UTIL_CL_VERSION_MACRO_NAME CL_TARGET_OPENCL_VERSION)
   elseif(UTIL_LIB_NAME STREQUAL UtilsCpp)
     set(UTIL_LIB_SOURCES src/Utils/Utils.cpp)
@@ -30,14 +34,14 @@ foreach(UTIL_LIB_NAME IN ITEMS Utils UtilsCpp)
   )
 
   target_include_directories(${UTIL_LIB_TARGET}
+    PRIVATE
+      "${whereami_INCLUDE_DIR}"
     PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
       $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
       $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   )
   target_link_libraries(${UTIL_LIB_TARGET}
-    PRIVATE
-      whereami
     PUBLIC
       ${UTIL_LIB_DEPS}
       OpenCL::OpenCL

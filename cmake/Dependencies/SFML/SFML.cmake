@@ -17,6 +17,7 @@ if(NOT (SFML_FOUND OR TARGET SFML::Graphics))
   endif()
   cmake_minimum_required(VERSION 3.11)
   include(FetchContent)
+  # Restrict build to necessary components
   set(SFML_BUILD_WINDOW ON CACHE BOOL "TRUE to build SFML's Window module. This setting is ignored, if the graphics module is built.")
   set(SFML_BUILD_GRAPHICS ON CACHE BOOL "TRUE to build SFML's Graphics module.")
   set(SFML_BUILD_AUDIO OFF CACHE BOOL "TRUE to build SFML's Audio module.")
@@ -25,7 +26,8 @@ if(NOT (SFML_FOUND OR TARGET SFML::Graphics))
     sfml-external
     GIT_REPOSITORY      https://github.com/SFML/SFML.git
     GIT_TAG             2.5.1 # 2f11710abc5aa478503a7ff3f9e654bd2078ebab
-    PATCH_COMMAND       ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/CMakeLists.txt" "${CMAKE_CURRENT_BINARY_DIR}/_deps/sfml-external-src/src/SFML/Graphics/CMakeLists.txt"
+    PATCH_COMMAND       ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_LIST_DIR}/Graphics_CMakeLists.txt" "${CMAKE_CURRENT_BINARY_DIR}/_deps/sfml-external-src/src/SFML/Graphics/CMakeLists.txt"
+    COMMAND             ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_LIST_DIR}/Root_CMakeLists.txt" "${CMAKE_CURRENT_BINARY_DIR}/_deps/sfml-external-src/CMakeLists.txt"
   )
   FetchContent_MakeAvailable(sfml-external)
   set_target_properties(sfml-window sfml-graphics sfml-system

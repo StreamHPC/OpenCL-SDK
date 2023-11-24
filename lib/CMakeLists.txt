@@ -14,7 +14,9 @@ foreach(UTIL_LIB_NAME IN ITEMS Utils UtilsCpp)
     endif()
     set(UTIL_CL_VERSION_MACRO_NAME CL_TARGET_OPENCL_VERSION)
   elseif(UTIL_LIB_NAME STREQUAL UtilsCpp)
-    set(UTIL_LIB_SOURCES src/Utils/Utils.cpp)
+    set(UTIL_LIB_SOURCES
+      src/Utils/Utils.cpp
+      "${whereami_SOURCES}")
     set(UTIL_LIB_DEPS
       OpenCL::HeadersCpp
       OpenCL::Utils

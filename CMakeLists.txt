@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.16)
+cmake_policy(VERSION 3.16...3.28)
+enable_testing()
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -27,8 +29,6 @@ option(OPENCL_SDK_BUILD_UTILITY_LIBRARIES "Build utility libraries" ON)
 cmake_dependent_option(OPENCL_SDK_BUILD_SAMPLES "Build sample code" ON OPENCL_SDK_BUILD_UTILITY_LIBRARIES OFF)
 cmake_dependent_option(OPENCL_SDK_BUILD_OPENGL_SAMPLES "Build OpenCL-OpenGL interop sample code" ON OPENCL_SDK_BUILD_SAMPLES OFF)
 cmake_dependent_option(OPENCL_SDK_TEST_SAMPLES "Add CTest to samples (where applicable)" ON OPENCL_SDK_BUILD_SAMPLES OFF)
-
-include(CTest)
 
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, default to Release")

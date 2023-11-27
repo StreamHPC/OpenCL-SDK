@@ -1,7 +1,7 @@
 [submodule "loader"]
 	path = external/OpenCL-ICD-Loader
 	url = https://github.com/StreamHPC/OpenCL-ICD-Loader.git
-	branch = release-cd
+	branch = release-cd-plus-static
 [submodule "headers"]
 	path = external/OpenCL-Headers
 	url = https://github.com/StreamHPC/OpenCL-Headers.git
